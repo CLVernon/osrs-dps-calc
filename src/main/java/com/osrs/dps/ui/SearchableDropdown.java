@@ -39,7 +39,7 @@ public class SearchableDropdown<T> extends HBox {
 
     private final Function<T, String> labeller;
     private final Function<T, String> imageNamer;
-    private final Function<T, String> tooltipper;
+    private final Function<T, javafx.scene.Node> tooltipper;
     private Consumer<T> onSelect;
     /** When true the field clears after selecting (for "add to list" usage). */
     private boolean clearOnSelect;
@@ -48,7 +48,8 @@ public class SearchableDropdown<T> extends HBox {
     private boolean updating;
 
     public SearchableDropdown(List<T> items, Function<T, String> labeller,
-                              Function<T, String> imageNamer, Function<T, String> tooltipper) {
+                              Function<T, String> imageNamer,
+                              Function<T, javafx.scene.Node> tooltipper) {
         this.labeller = labeller;
         this.imageNamer = imageNamer;
         this.tooltipper = tooltipper;
@@ -181,11 +182,12 @@ public class SearchableDropdown<T> extends HBox {
                 }
             }
             if (tooltipper != null) {
-                String text = tooltipper.apply(item);
-                if (text != null && !text.isBlank()) {
-                    Tooltip tip = new Tooltip(text);
-                    tip.setShowDelay(Duration.millis(300));
-                    tip.setStyle("-fx-font-family: monospace;");
+                javafx.scene.Node content = tooltipper.apply(item);
+                if (content != null) {
+                    Tooltip tip = new Tooltip();
+                    tip.setGraphic(content);
+                    tip.setShowDelay(Duration.millis(250));
+                    tip.setShowDuration(Duration.INDEFINITE);
                     setTooltip(tip);
                 } else {
                     setTooltip(null);
