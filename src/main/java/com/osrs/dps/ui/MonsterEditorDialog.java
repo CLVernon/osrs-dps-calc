@@ -51,6 +51,16 @@ public final class MonsterEditorDialog {
         CheckBox dragon = attribute(source, "dragon");
         CheckBox kalphite = attribute(source, "kalphite");
         CheckBox leafy = attribute(source, "leafy");
+        CheckBox golem = attribute(source, "golem");
+        CheckBox rat = attribute(source, "rat");
+        CheckBox shade = attribute(source, "shade");
+        CheckBox fiery = attribute(source, "fiery");
+        CheckBox flying = attribute(source, "flying");
+        CheckBox xerician = attribute(source, "xerician");
+        CheckBox vampyre1 = exactAttribute(source, "vampyre1");
+        CheckBox vampyre2 = exactAttribute(source, "vampyre2");
+        CheckBox vampyre3 = exactAttribute(source, "vampyre3");
+        Spinner<Integer> toaInvocation = spinner(source.toaInvocationLevel, 0, 600);
 
         ComboBox<String> weakElement = new ComboBox<>();
         weakElement.getItems().addAll("none", "air", "water", "earth", "fire");
@@ -74,9 +84,13 @@ public final class MonsterEditorDialog {
         grid.addRow(row++, new Label("Def: Ranged (light)"), defLight);
         grid.addRow(row++, new Label("Flat armour"), flatArmour);
         grid.addRow(row++, new Label("Attributes"), new javafx.scene.layout.HBox(8, undead, demon, dragon));
-        grid.addRow(row++, new Label(""), new javafx.scene.layout.HBox(8, kalphite, leafy));
+        grid.addRow(row++, new Label(""), new javafx.scene.layout.HBox(8, kalphite, leafy, golem));
+        grid.addRow(row++, new Label(""), new javafx.scene.layout.HBox(8, rat, shade, fiery));
+        grid.addRow(row++, new Label(""), new javafx.scene.layout.HBox(8, flying, xerician));
+        grid.addRow(row++, new Label(""), new javafx.scene.layout.HBox(8, vampyre1, vampyre2, vampyre3));
         grid.addRow(row++, new Label("Elemental weakness"), weakElement);
         grid.addRow(row++, new Label("Weakness severity %"), weakSeverity);
+        grid.addRow(row++, new Label("ToA invocation"), toaInvocation);
 
         dialog.getDialogPane().setContent(new javafx.scene.control.ScrollPane(grid));
 
@@ -106,22 +120,22 @@ public final class MonsterEditorDialog {
             m.defensive.light = defLight.getValue();
             m.defensive.flatArmour = flatArmour.getValue();
             List<String> attrs = new ArrayList<>();
-            if (undead.isSelected()) {
-                attrs.add("undead");
-            }
-            if (demon.isSelected()) {
-                attrs.add("demon");
-            }
-            if (dragon.isSelected()) {
-                attrs.add("dragon");
-            }
-            if (kalphite.isSelected()) {
-                attrs.add("kalphite");
-            }
-            if (leafy.isSelected()) {
-                attrs.add("leafy");
-            }
+            addIf(attrs, undead, "undead");
+            addIf(attrs, demon, "demon");
+            addIf(attrs, dragon, "dragon");
+            addIf(attrs, kalphite, "kalphite");
+            addIf(attrs, leafy, "leafy");
+            addIf(attrs, golem, "golem");
+            addIf(attrs, rat, "rat");
+            addIf(attrs, shade, "shade");
+            addIf(attrs, fiery, "fiery");
+            addIf(attrs, flying, "flying");
+            addIf(attrs, xerician, "xerician");
+            addIf(attrs, vampyre1, "vampyre1");
+            addIf(attrs, vampyre2, "vampyre2");
+            addIf(attrs, vampyre3, "vampyre3");
             m.attributes = attrs;
+            m.toaInvocationLevel = toaInvocation.getValue();
             if (!"none".equals(weakElement.getValue()) && weakSeverity.getValue() > 0) {
                 m.weakness = new Monster.Weakness();
                 m.weakness.element = weakElement.getValue();
@@ -148,5 +162,17 @@ public final class MonsterEditorDialog {
         CheckBox cb = new CheckBox(attr);
         cb.setSelected(source.hasAttribute(attr));
         return cb;
+    }
+
+    private static CheckBox exactAttribute(Monster source, String attr) {
+        CheckBox cb = new CheckBox(attr);
+        cb.setSelected(source.attributes != null && source.attributes.contains(attr));
+        return cb;
+    }
+
+    private static void addIf(List<String> attrs, CheckBox box, String attr) {
+        if (box.isSelected()) {
+            attrs.add(attr);
+        }
     }
 }

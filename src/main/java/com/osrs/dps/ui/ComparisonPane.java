@@ -51,10 +51,13 @@ public class ComparisonPane extends VBox {
                 r -> r.result().avgDamagePerAttack(), "%.2f");
         TableColumn<Row, Number> speedCol = numberColumn("Speed (s)",
                 r -> r.result().attackIntervalSeconds(), "%.1f");
-        TableColumn<Row, Number> ttkCol = numberColumn("Est. TTK (s)",
+        TableColumn<Row, Number> htkCol = numberColumn("Avg hits to kill",
+                r -> r.result().expectedHitsToKill(), "%.1f");
+        TableColumn<Row, Number> ttkCol = numberColumn("Avg TTK (s)",
                 Row::ttkSeconds, "%.1f");
 
-        table.getColumns().setAll(List.of(nameCol, dpsCol, maxCol, accCol, avgCol, speedCol, ttkCol));
+        table.getColumns().setAll(List.of(nameCol, dpsCol, maxCol, accCol, avgCol, speedCol,
+                htkCol, ttkCol));
 
         // Highlight the best setup.
         table.setRowFactory(tv -> new TableRow<>() {
@@ -62,7 +65,7 @@ public class ComparisonPane extends VBox {
             protected void updateItem(Row row, boolean empty) {
                 super.updateItem(row, empty);
                 if (!empty && row != null && row.best()) {
-                    setStyle("-fx-background-color: #d8f5d8;");
+                    setStyle("-fx-background-color: rgba(46,160,67,0.30);");
                 } else {
                     setStyle("");
                 }
@@ -110,7 +113,7 @@ public class ComparisonPane extends VBox {
         for (PlayerSetup setup : setups) {
             DpsResult result = DpsCalculator.calculate(setup, monster);
             bestDps = Math.max(bestDps, result.dps());
-            computed.add(new Row(setup, result, result.expectedTimeToKill(monster.skills.hp), false));
+            computed.add(new Row(setup, result, result.ttkSeconds(), false));
         }
         final double best = bestDps;
         computed.sort((a, b) -> Double.compare(b.result().dps(), a.result().dps()));

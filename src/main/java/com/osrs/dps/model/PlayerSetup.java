@@ -14,6 +14,9 @@ public class PlayerSetup {
     private int rangedLevel = 99;
     private int magicLevel = 99;
     private int hitpointsLevel = 99;
+    /** Current HP, for Dharok's set effect; 0 means "at full health". */
+    private int currentHitpoints;
+    private int miningLevel = 99;
 
     private final Map<EquipmentSlot, EquipmentItem> equipment = new EnumMap<>(EquipmentSlot.class);
 
@@ -21,8 +24,15 @@ public class PlayerSetup {
     private Stance stance = Stance.ACCURATE;
     private Prayer prayer = Prayer.NONE;
     private Potion potion = Potion.NONE;
-    private Spell spell;
+    private SpellData spell;
     private boolean onSlayerTask;
+    private boolean inWilderness;
+    private boolean forinthrySurge;
+    private boolean markOfDarkness;
+    private boolean chargeSpell;
+    private boolean kandarinDiary;
+    private boolean sunfireRunes;
+    private int chinchompaDistance = 5;
 
     public PlayerSetup() {
     }
@@ -39,6 +49,8 @@ public class PlayerSetup {
         c.rangedLevel = rangedLevel;
         c.magicLevel = magicLevel;
         c.hitpointsLevel = hitpointsLevel;
+        c.currentHitpoints = currentHitpoints;
+        c.miningLevel = miningLevel;
         c.equipment.putAll(equipment);
         c.attackType = attackType;
         c.stance = stance;
@@ -46,6 +58,13 @@ public class PlayerSetup {
         c.potion = potion;
         c.spell = spell;
         c.onSlayerTask = onSlayerTask;
+        c.inWilderness = inWilderness;
+        c.forinthrySurge = forinthrySurge;
+        c.markOfDarkness = markOfDarkness;
+        c.chargeSpell = chargeSpell;
+        c.kandarinDiary = kandarinDiary;
+        c.sunfireRunes = sunfireRunes;
+        c.chinchompaDistance = chinchompaDistance;
         return c;
     }
 
@@ -111,10 +130,20 @@ public class PlayerSetup {
     public int attackSpeedTicks() {
         EquipmentItem weapon = getWeapon();
         int base = weapon != null && weapon.speed > 0 ? weapon.speed : 4;
-        if (attackType == AttackType.MAGIC && isCastingSpell()) {
-            base = 5; // standard autocast speed
+        if (attackType == AttackType.RANGED && stance == Stance.RAPID) {
+            base -= 1;
+        } else if (isCastingSpell()) {
+            String weaponName = weapon == null ? "" : weapon.name;
+            if ("Harmonised nightmare staff".equals(weaponName)
+                    && spell != null && "standard".equals(spell.spellbook)) {
+                base = 4;
+            } else if ("Twinflame staff".equals(weaponName)) {
+                base = 6;
+            } else {
+                base = 5;
+            }
         }
-        return Math.max(1, base + stance.speedAdjustment());
+        return Math.max(1, base);
     }
 
     /** True when attacking with an autocast spell rather than a powered staff. */
@@ -231,12 +260,85 @@ public class PlayerSetup {
         this.potion = potion;
     }
 
-    public Spell getSpell() {
+    public SpellData getSpell() {
         return spell;
     }
 
-    public void setSpell(Spell spell) {
+    public void setSpell(SpellData spell) {
         this.spell = spell;
+    }
+
+    /** Current HP for Dharok's; defaults to full health when unset. */
+    public int getCurrentHitpoints() {
+        return currentHitpoints > 0 ? Math.min(currentHitpoints, hitpointsLevel) : hitpointsLevel;
+    }
+
+    public void setCurrentHitpoints(int currentHitpoints) {
+        this.currentHitpoints = currentHitpoints;
+    }
+
+    public int getMiningLevel() {
+        return miningLevel;
+    }
+
+    public void setMiningLevel(int miningLevel) {
+        this.miningLevel = miningLevel;
+    }
+
+    public boolean isInWilderness() {
+        return inWilderness;
+    }
+
+    public void setInWilderness(boolean inWilderness) {
+        this.inWilderness = inWilderness;
+    }
+
+    public boolean isForinthrySurge() {
+        return forinthrySurge;
+    }
+
+    public void setForinthrySurge(boolean forinthrySurge) {
+        this.forinthrySurge = forinthrySurge;
+    }
+
+    public boolean isMarkOfDarkness() {
+        return markOfDarkness;
+    }
+
+    public void setMarkOfDarkness(boolean markOfDarkness) {
+        this.markOfDarkness = markOfDarkness;
+    }
+
+    public boolean isChargeSpell() {
+        return chargeSpell;
+    }
+
+    public void setChargeSpell(boolean chargeSpell) {
+        this.chargeSpell = chargeSpell;
+    }
+
+    public boolean isKandarinDiary() {
+        return kandarinDiary;
+    }
+
+    public void setKandarinDiary(boolean kandarinDiary) {
+        this.kandarinDiary = kandarinDiary;
+    }
+
+    public boolean isSunfireRunes() {
+        return sunfireRunes;
+    }
+
+    public void setSunfireRunes(boolean sunfireRunes) {
+        this.sunfireRunes = sunfireRunes;
+    }
+
+    public int getChinchompaDistance() {
+        return chinchompaDistance;
+    }
+
+    public void setChinchompaDistance(int chinchompaDistance) {
+        this.chinchompaDistance = chinchompaDistance;
     }
 
     public boolean isOnSlayerTask() {

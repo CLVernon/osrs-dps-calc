@@ -8,7 +8,6 @@ import com.osrs.dps.model.EquipmentSlot;
 import com.osrs.dps.model.PlayerSetup;
 import com.osrs.dps.model.Potion;
 import com.osrs.dps.model.Prayer;
-import com.osrs.dps.model.Spell;
 import com.osrs.dps.model.Stance;
 
 import java.util.HashMap;
@@ -25,6 +24,8 @@ public class PlayerPresetDto {
     public int rangedLevel;
     public int magicLevel;
     public int hitpointsLevel;
+    public int currentHitpoints;
+    public int miningLevel = 99;
     public Map<String, String> equipment = new HashMap<>();
     public String attackType;
     public String stance;
@@ -32,6 +33,13 @@ public class PlayerPresetDto {
     public String potion;
     public String spell;
     public boolean onSlayerTask;
+    public boolean inWilderness;
+    public boolean forinthrySurge;
+    public boolean markOfDarkness;
+    public boolean chargeSpell;
+    public boolean kandarinDiary;
+    public boolean sunfireRunes;
+    public int chinchompaDistance = 5;
 
     public static PlayerPresetDto from(PlayerSetup setup) {
         PlayerPresetDto dto = new PlayerPresetDto();
@@ -45,12 +53,21 @@ public class PlayerPresetDto {
         for (Map.Entry<EquipmentSlot, EquipmentItem> e : setup.getEquipment().entrySet()) {
             dto.equipment.put(e.getKey().jsonName(), e.getValue().displayName());
         }
+        dto.currentHitpoints = setup.getCurrentHitpoints();
+        dto.miningLevel = setup.getMiningLevel();
         dto.attackType = setup.getAttackType().name();
         dto.stance = setup.getStance().name();
         dto.prayer = setup.getPrayer().name();
         dto.potion = setup.getPotion().name();
-        dto.spell = setup.getSpell() == null ? null : setup.getSpell().name();
+        dto.spell = setup.getSpell() == null ? null : setup.getSpell().name;
         dto.onSlayerTask = setup.isOnSlayerTask();
+        dto.inWilderness = setup.isInWilderness();
+        dto.forinthrySurge = setup.isForinthrySurge();
+        dto.markOfDarkness = setup.isMarkOfDarkness();
+        dto.chargeSpell = setup.isChargeSpell();
+        dto.kandarinDiary = setup.isKandarinDiary();
+        dto.sunfireRunes = setup.isSunfireRunes();
+        dto.chinchompaDistance = setup.getChinchompaDistance();
         return dto;
     }
 
@@ -71,12 +88,21 @@ public class PlayerPresetDto {
                 }
             }
         }
+        setup.setCurrentHitpoints(currentHitpoints);
+        setup.setMiningLevel(miningLevel);
         setup.setAttackType(parse(AttackType.class, attackType, AttackType.SLASH));
         setup.setStance(parse(Stance.class, stance, Stance.ACCURATE));
         setup.setPrayer(parse(Prayer.class, prayer, Prayer.NONE));
         setup.setPotion(parse(Potion.class, potion, Potion.NONE));
-        setup.setSpell(spell == null ? null : parse(Spell.class, spell, null));
+        setup.setSpell(spell == null ? null : data.findSpell(spell));
         setup.setOnSlayerTask(onSlayerTask);
+        setup.setInWilderness(inWilderness);
+        setup.setForinthrySurge(forinthrySurge);
+        setup.setMarkOfDarkness(markOfDarkness);
+        setup.setChargeSpell(chargeSpell);
+        setup.setKandarinDiary(kandarinDiary);
+        setup.setSunfireRunes(sunfireRunes);
+        setup.setChinchompaDistance(chinchompaDistance);
         return setup;
     }
 

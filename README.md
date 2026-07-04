@@ -1,6 +1,7 @@
 # OSRS DPS Calculator
 
-A desktop DPS calculator for Old School RuneScape, built with Java 21 and JavaFX.
+A desktop DPS calculator for Old School RuneScape, built with Java 21 and JavaFX
+(AtlantaFX dark theme).
 
 Unlike single-loadout web calculators, this app is built around **comparison**: create any
 number of player setups and see them ranked side by side against any monster, with presets
@@ -8,47 +9,70 @@ for both players and monsters.
 
 ## Features
 
-- **Multiple player setups** — add, duplicate, and remove loadouts freely; each has its own
-  levels, equipment (searchable pickers over the full wiki item database), attack style,
-  prayer, potion, spell, and slayer-task flag.
-- **Any monster** — 2,800+ monsters bundled from the OSRS Wiki dataset, plus an editor to
-  tweak stats or create fully custom monsters.
-- **Presets** — save/load both player setups and monsters as JSON under
+- **Multiple player setups** — add, duplicate, remove loadouts; each has its own levels
+  (incl. mining and current HP for niche mechanics), equipment with item icons, attack
+  style, prayer, potion, spell, and situational buffs (slayer task, wilderness,
+  Mark of Darkness, Charge, Kandarin diary, sunfire runes...).
+- **Any monster** — 2,800+ monsters bundled from the OSRS Wiki dataset with icons, plus an
+  editor for custom monsters (all attributes, elemental weaknesses, flat armour,
+  ToA invocation level).
+- **Auto-updating data** — on startup (at most once per day) the app downloads the latest
+  equipment/monster/spell data from the wiki DPS tool's dataset into
+  `%APPDATA%\osrs-dps-calc\data`, falling back to bundled data offline.
+- **Presets** — save/load player setups and monsters as JSON under
   `%APPDATA%\osrs-dps-calc\presets`.
-- **Comparison table** — all setups ranked by DPS against the current target, showing max
-  hit, accuracy, average damage per attack, attack interval, and estimated time-to-kill.
-  The best setup is highlighted; selecting a row lists the special effects that applied.
+- **Comparison table** — all setups ranked by DPS with max hit, accuracy, average damage
+  per attack, attack interval, average hits-to-kill and **overkill-aware time-to-kill**
+  (computed from the full hit distribution, not `hp / dps`). Best setup highlighted;
+  selecting a row lists every special effect that applied.
 
-### Combat mechanics covered
+## Combat mechanics
 
-Standard melee/ranged/magic formulas from the
-[OSRS wiki](https://oldschool.runescape.wiki/w/Damage_per_second), plus:
+The engine is a Java port of the calculation core of the
+[wiki DPS tool](https://tools.runescape.wiki/osrs-dps/)
+([weirdgloop/osrs-dps-calc](https://github.com/weirdgloop/osrs-dps-calc)), using full hit
+distributions so proc effects compose correctly. Covered mechanics include:
 
-- Void knight sets (regular and elite, all three styles)
-- Salve amulet (e)/(i)/(ei) vs undead; slayer helmet / black mask (i) on task
-  (salve takes priority, no stacking)
-- Twisted bow magic-level scaling (capped at 250)
-- Tumeken's shadow (triples equipment magic bonuses, damage capped at +100%)
-- Osmumten's fang (accuracy re-roll, 15%–85% damage range)
-- Scythe of Vitur multi-hits vs size-2+ targets
-- Dragon hunter lance / dragon hunter crossbow vs dragons
-- Arclight/Emberlight and Silverlight/Darklight vs demons
-- Keris vs kalphites (incl. 1/51 triple hit)
-- Leaf-bladed battleaxe vs leafy; Inquisitor's set vs crush
-- Crystal armour bonus with crystal bow / bow of faerdhinen
-- Powered staves (tridents, Sanguinesti, shadow, sceptres, Gauntlet staves…)
-- Elemental spell weaknesses (accuracy bonus by severity)
-- Separate monster ranged defences vs heavy/standard/light weapons
-- Flat armour damage reduction (e.g. Tormented demons)
+- Void / elite void (all styles), salve amulet variants, black mask / slayer helmet (i)
+  with correct additive stacking rules per style
+- Twisted bow (exact scaling, 350 cap vs Xerician monsters, P2 Wardens double-dip)
+- Tumeken's shadow (3x bonuses, 4x inside ToA, +100% damage cap)
+- Osmumten's fang (exact double-roll accuracy formula, ToA variant, 15%–85% range)
+- Scythe of Vitur multi-hits; two-hit weapons (Torag's, Dual macuahuitl, sulphur blades...)
+- Dragon hunter lance / crossbow / wand; arclight, emberlight, silverlight/darklight,
+  scorching bow, burning claws (demonbane %)
+- Demonbane spells with Mark of Darkness and Purging staff
+- Keris variants (incl. partisan of breaching accuracy and 1/51 triple)
+- Enchanted bolts: opal, pearl, diamond, dragonstone, onyx, ruby (Zaryte crossbow and
+  Kandarin diary modifiers, ruby HP caps)
+- Vampyre tiers 1-3: silver weapons, vampyrebane weapons, Efaritay's aid caps/immunities
+- Barrows set effects: Dharok's (current HP), Verac's, Karil's, Ahrim's
+- Obsidian set + Tzhaar weapons + berserker necklace; Inquisitor's (incl. mace rules);
+  crystal armour + crystal bow/bowfa; Virtus + ancient spells
+- Chinchompa fuse/distance accuracy; salamanders; ogre bows; holy water; eclipse atlatl
+  (strength scaling); tonalztics of ralos; colossal blade; rat bone weapons; gadderhammer;
+  barronite mace; granite hammer; leaf-bladed battleaxe (and leafy immunity)
+- Amulet of avarice (+ Forinthry Surge) vs revenants; wilderness weapons (Craw's/Webweaver,
+  Thammaron's/Accursed, Viggora's/Ursine)
+- Smoke battlestaff, elemental tomes, chaos gauntlets, Charge, sunfire runes, brimstone
+  ring (25% defence-roll proc), harmonised nightmare staff 4t autocast, Twinflame staff
+- Powered staves (tridents, sanguinesti, shadow, sceptres, wands, Gauntlet staves, bone
+  staff...) and level-scaled standard spells; Magic Dart with Slayer's staff (e)
+- Elemental weaknesses (accuracy and damage); monster ranged defences by weapon class
+  (light/standard/heavy/mixed); NPC magic defence via Defence level for the right NPCs
+- ToA invocation defence scaling; flat armour (Tormented demons)
+- Boss-specific damage caps/reductions: Zulrah, Kraken, Tekton, Olm hands/head, ice demon,
+  Glowing crystal, Verzik P1, Nightmare totems, Corporeal Beast (corpbane), Zogres,
+  Slagilith, CoX Guardians (pickaxe + Mining scaling), Fragment of Seren
+- Style/weapon immunities (flying + melee, aviansies, leafy, rat weapons, CoX Guardians...)
 
 ### Known simplifications
 
-- TTK is `hp / dps` (no overkill/hitpoint-state simulation).
-- ToA invocation scaling, Vardorvis/Corp-style custom defence mechanics, demonbane spells,
-  Mark of Darkness, tomes, chinchompa fuse styles, and salamanders are not modelled.
-- Newer Varlamore prayers (Deadeye, Mystic Vigour) are not included.
-- Item effect values reflect the post-"Project Rebalance" data where the wiki dataset does
-  (e.g. occult necklace at +5%).
+- Special attacks are not modelled (regular attacks only).
+- Monster phase mechanics needing manual input (Tormented demon shield, Hueycoatl pillars,
+  Doom of Mokhaiotl) are not modelled; ToA path/invocation HP scaling applies to defence
+  only, not monster HP.
+- Blood moon set proc speed, Soulreaper axe stacks, and thralls are not modelled.
 
 ## Requirements
 
@@ -67,25 +91,23 @@ $env:JAVA_HOME = "C:\path\to\jdk-21"
 .\mvnw.cmd test
 ```
 
-## Data
+## Data & attribution
 
-Item and monster stats are bundled at `src/main/resources/data/` and come from the
-[weirdgloop/osrs-dps-calc](https://github.com/weirdgloop/osrs-dps-calc) dataset (the same
-data behind the wiki's DPS tool). To refresh them, re-download:
-
-```powershell
-Invoke-WebRequest https://raw.githubusercontent.com/weirdgloop/osrs-dps-calc/main/cdn/json/equipment.json -OutFile src/main/resources/data/equipment.json
-Invoke-WebRequest https://raw.githubusercontent.com/weirdgloop/osrs-dps-calc/main/cdn/json/monsters.json -OutFile src/main/resources/data/monsters.json
-```
+Item/monster/spell stats come from the
+[weirdgloop/osrs-dps-calc](https://github.com/weirdgloop/osrs-dps-calc) dataset (the data
+behind the wiki's DPS tool); the calculation engine is ported from the same project.
+Item and monster icons are loaded on demand from the OSRS Wiki and cached in
+`%APPDATA%\osrs-dps-calc\cache`.
 
 ## Project layout
 
 ```
 src/main/java/com/osrs/dps/
-  App.java          JavaFX application and main window
-  model/            Equipment, monsters, player setups, prayers/potions/spells
-  data/             Bundled wiki data loading
-  calc/             DPS engine (wiki formulas + special cases)
+  App.java          JavaFX application, startup data update, main window
+  model/            Equipment, monsters, spells, player setups, prayers/potions
+  data/             Data loading, auto-updater, image cache
+  calc/             Hit-distribution DPS engine (wiki tool port)
+  calc/dist/        Hit distribution primitives and transformers
   preset/           JSON preset persistence
   ui/               Setup editor, monster editor, comparison table, search picker
 ```

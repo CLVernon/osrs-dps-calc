@@ -2,7 +2,6 @@ package com.osrs.dps.calc;
 
 import com.osrs.dps.data.DataRepository;
 import com.osrs.dps.model.AttackType;
-import com.osrs.dps.model.EquipmentItem;
 import com.osrs.dps.model.EquipmentSlot;
 import com.osrs.dps.model.Monster;
 import com.osrs.dps.model.PlayerSetup;
@@ -10,6 +9,8 @@ import com.osrs.dps.model.Potion;
 import com.osrs.dps.model.Prayer;
 import com.osrs.dps.model.Stance;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,6 +24,7 @@ class DpsCalculatorTest {
                                         int magicLevel, int magicDef,
                                         int heavy, int standard, int light) {
         Monster m = new Monster();
+        m.id = -1;
         m.name = "Test dummy";
         m.skills.def = def;
         m.skills.magic = magicLevel;
@@ -58,17 +60,20 @@ class DpsCalculatorTest {
     }
 
     @Test
-    void whipAccuracyAgainstKnownDefence() {
+    void whipAccuracyAndDpsAgainstKnownDefence() {
         // eff attack = floor(118*1.20) + 0 + 8 = 149; roll = 149*(82+64) = 21754
         // def roll = (100+9)*(50+64) = 12426
         // accuracy = 1 - (12426+2)/(2*(21754+1)) = 0.7143644...
         Monster m = dummyMonster(100, 50, 50, 50, 1, 0, 0, 0, 0);
         DpsResult r = DpsCalculator.calculate(whipSetup(), m);
         assertEquals(0.7143644, r.accuracy(), 1e-6);
-        // avg damage = accuracy * 36/2; dps = avg / 2.4 (whip is 4 ticks)
-        assertEquals(0.7143644 * 18, r.avgDamagePerAttack(), 1e-4);
+        // accurate zeros become 1s: E[hit] = (1 + 1 + 2 + ... + 36)/37 = 667/37
+        double expectedAvg = 0.7143644 * (667.0 / 37.0);
+        assertEquals(expectedAvg, r.avgDamagePerAttack(), 1e-4);
         assertEquals(4, r.attackSpeedTicks());
-        assertEquals(0.7143644 * 18 / 2.4, r.dps(), 1e-4);
+        assertEquals(expectedAvg / 2.4, r.dps(), 1e-4);
+        // overkill-aware TTK must exceed the naive hp/dps estimate
+        assertTrue(r.ttkSeconds() >= 100 / r.dps() - 1e-9);
     }
 
     @Test
@@ -97,6 +102,19 @@ class DpsCalculatorTest {
     }
 
     @Test
+    void tumekensShadowTriplesMagicBonuses() {
+        // base = floor(99/3)+1 = 34; occult 5% tripled to 15% -> floor(34*1.15) = 39
+        Monster m = dummyMonster(100, 0, 0, 0, 100, 30, 0, 0, 0);
+        PlayerSetup p = new PlayerSetup("Shadow test");
+        p.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Tumeken's shadow (Charged)"));
+        p.setEquipped(EquipmentSlot.NECK, DATA.findEquipment("Occult necklace"));
+        p.setAttackType(AttackType.MAGIC);
+        p.setStance(Stance.ACCURATE);
+        DpsResult r = DpsCalculator.calculate(p, m);
+        assertEquals(39, r.maxHit());
+    }
+
+    @Test
     void fangRerollsAccuracy() {
         Monster m = dummyMonster(200, 100, 100, 100, 1, 0, 0, 0, 0);
         PlayerSetup fang = new PlayerSetup("Fang");
@@ -110,8 +128,6 @@ class DpsCalculatorTest {
 
         DpsResult fangResult = DpsCalculator.calculate(fang, m);
         DpsResult plainResult = DpsCalculator.calculate(plain, m);
-        // Same stab/slash defences on the dummy; fang's reroll must beat a single roll
-        // even though the whip has similar accuracy characteristics.
         assertTrue(fangResult.accuracy() > plainResult.accuracy(),
                 "fang accuracy should exceed a single-roll weapon on a high-defence target");
         assertTrue(fangResult.accuracy() <= 1.0);
@@ -132,9 +148,7 @@ class DpsCalculatorTest {
         DpsResult vsSmall = DpsCalculator.calculate(p, small);
         DpsResult vsLarge = DpsCalculator.calculate(p, large);
         int maxHit = vsSmall.maxHit();
-        double expectedLargeAvg = vsLarge.accuracy()
-                * (maxHit + maxHit / 2 + maxHit / 4) / 2.0;
-        assertEquals(expectedLargeAvg, vsLarge.avgDamagePerAttack(), 1e-6);
+        assertEquals(maxHit + maxHit / 2 + maxHit / 4, vsLarge.maxHit());
         assertTrue(vsLarge.dps() > vsSmall.dps() * 1.6);
     }
 
@@ -185,6 +199,68 @@ class DpsCalculatorTest {
     }
 
     @Test
+    void kerisTripleHitVsKalphite() {
+        Monster kalphite = dummyMonster(50, 30, 30, 30, 1, 0, 0, 0, 0);
+        kalphite.attributes = List.of("kalphite");
+        Monster plain = dummyMonster(50, 30, 30, 30, 1, 0, 0, 0, 0);
+
+        PlayerSetup p = new PlayerSetup("Keris");
+        p.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Keris partisan"));
+        p.setAttackType(AttackType.STAB);
+        p.setStance(Stance.AGGRESSIVE);
+
+        DpsResult vsKalphite = DpsCalculator.calculate(p, kalphite);
+        DpsResult vsPlain = DpsCalculator.calculate(p, plain);
+        // 4/3 damage and 1/51 triple: max hit is 3x the boosted max
+        assertTrue(vsKalphite.maxHit() >= vsPlain.maxHit() * 3);
+        assertTrue(vsKalphite.avgDamagePerAttack() > vsPlain.avgDamagePerAttack() * 1.3);
+    }
+
+    @Test
+    void vampyreTier3ImmuneWithoutBlisterwood() {
+        Monster vampyre = dummyMonster(100, 50, 50, 50, 1, 0, 0, 0, 0);
+        vampyre.attributes = List.of("vampyre3");
+        DpsResult r = DpsCalculator.calculate(whipSetup(), vampyre);
+        assertEquals(0, r.dps());
+    }
+
+    @Test
+    void leafyImmuneWithoutLeafBladed() {
+        Monster leafy = dummyMonster(100, 50, 50, 50, 1, 0, 0, 0, 0);
+        leafy.attributes = List.of("leafy");
+        assertEquals(0, DpsCalculator.calculate(whipSetup(), leafy).dps());
+
+        PlayerSetup lbb = whipSetup();
+        lbb.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Leaf-bladed battleaxe"));
+        assertTrue(DpsCalculator.calculate(lbb, leafy).dps() > 0);
+    }
+
+    @Test
+    void rubyBoltsBoostAverageDamageVsHighHp(){
+        Monster bigHp = dummyMonster(100, 0, 0, 0, 1, 0, 50, 50, 50);
+        bigHp.skills.hp = 500;
+
+        PlayerSetup p = new PlayerSetup("RCB");
+        p.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Rune crossbow"));
+        p.setAttackType(AttackType.RANGED);
+        p.setStance(Stance.RAPID);
+        PlayerSetup withRuby = p.copy();
+        withRuby.setEquipped(EquipmentSlot.AMMO, DATA.findEquipment("Ruby bolts (e)"));
+
+        DpsResult without = DpsCalculator.calculate(p, bigHp);
+        DpsResult with = DpsCalculator.calculate(withRuby, bigHp);
+        assertTrue(with.avgDamagePerAttack() > without.avgDamagePerAttack());
+        assertTrue(with.maxHit() >= 100, "ruby proc caps at 100 vs 500hp");
+    }
+
+    @Test
+    void spellMaxHitsScaleWithLevel() {
+        assertNotNull(DATA.findSpell("Fire Surge"));
+        // Wind Strike at level 99 resolves to the Fire Strike tier (8)
+        assertEquals(8, DATA.findSpell("Wind Strike").maxHitAtLevel(99, DATA.allSpells()));
+    }
+
+    @Test
     void magicWithoutSpellOrPoweredStaffIsZero() {
         Monster m = dummyMonster(100, 0, 0, 0, 100, 0, 0, 0, 0);
         PlayerSetup p = new PlayerSetup("No spell");
@@ -202,5 +278,6 @@ class DpsCalculatorTest {
         assertNotNull(DATA.findMonster("Zulrah (Magma)"));
         assertTrue(DATA.allEquipment().size() > 5000);
         assertTrue(DATA.allMonsters().size() > 2500);
+        assertTrue(DATA.allSpells().size() > 30);
     }
 }

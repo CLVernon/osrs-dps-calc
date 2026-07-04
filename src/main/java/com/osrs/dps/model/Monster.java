@@ -71,6 +71,9 @@ public class Monster {
     /** Elemental weakness, or null / element "none" when the monster has none. */
     public Weakness weakness;
 
+    /** ToA raid invocation level; only applies to Tombs of Amascut and custom monsters. */
+    public int toaInvocationLevel;
+
     public boolean hasAttribute(String attribute) {
         if (attributes == null) {
             return false;
