@@ -1,7 +1,6 @@
 package com.osrs.dps.ui;
 
 import com.osrs.dps.data.DataRepository;
-import com.osrs.dps.data.ImageCache;
 import com.osrs.dps.model.AttackType;
 import com.osrs.dps.model.EquipmentItem;
 import com.osrs.dps.model.EquipmentSlot;
@@ -19,8 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -46,7 +43,8 @@ public class PlayerSetupPane extends VBox {
     private final ComboBox<Stance> stance = new ComboBox<>();
     private final ComboBox<Prayer> prayer = new ComboBox<>();
     private final ComboBox<Potion> potion = new ComboBox<>();
-    private final Button spellButton = new Button("(no spell)");
+    private final SearchableDropdown<SpellData> spellDropdown = new SearchableDropdown<>(
+            java.util.List.of(), SpellData::displayName, s -> s.image, StatTooltips::forSpell);
     private final Button clearSpell = new Button("✕");
     private final CheckBox slayerTask = new CheckBox("On Slayer task");
     private final CheckBox wilderness = new CheckBox("In Wilderness");
@@ -56,8 +54,8 @@ public class PlayerSetupPane extends VBox {
     private final CheckBox kandarin = new CheckBox("Kandarin diary");
     private final CheckBox sunfire = new CheckBox("Sunfire runes");
     private final Spinner<Integer> chinDistance = new Spinner<>(1, 10, 5);
-    private final Map<EquipmentSlot, Button> gearButtons = new EnumMap<>(EquipmentSlot.class);
-    private final Map<EquipmentSlot, ImageView> gearIcons = new EnumMap<>(EquipmentSlot.class);
+    private final Map<EquipmentSlot, SearchableDropdown<EquipmentItem>> gearDropdowns =
+            new EnumMap<>(EquipmentSlot.class);
     private final Label bonusSummary = new Label();
 
     public PlayerSetupPane(Runnable onChanged) {
@@ -84,12 +82,18 @@ public class PlayerSetupPane extends VBox {
         wireCombo(prayer, v -> setup.setPrayer(v));
         wireCombo(potion, v -> setup.setPotion(v));
 
-        spellButton.setOnAction(e -> pickSpell());
-        spellButton.setMaxWidth(Double.MAX_VALUE);
+        spellDropdown.setItems(data.allSpells());
+        spellDropdown.setFieldPromptText("(no spell)");
+        spellDropdown.setOnSelect(spell -> {
+            if (setup != null) {
+                setup.setSpell(spell);
+                changed();
+            }
+        });
         clearSpell.setOnAction(e -> {
             if (setup != null) {
                 setup.setSpell(null);
-                refreshSpellButton();
+                refreshSpellDropdown();
                 changed();
             }
         });
@@ -122,8 +126,8 @@ public class PlayerSetupPane extends VBox {
         GridPane combat = grid();
         combat.addRow(0, new Label("Attack type"), attackType, new Label("Stance"), stance);
         combat.addRow(1, new Label("Prayer"), prayer, new Label("Potion"), potion);
-        HBox spellRow = new HBox(4, spellButton, clearSpell);
-        HBox.setHgrow(spellButton, Priority.ALWAYS);
+        HBox spellRow = new HBox(4, spellDropdown, clearSpell);
+        HBox.setHgrow(spellDropdown, Priority.ALWAYS);
         combat.addRow(2, new Label("Spell"), spellRow, new Label("Chin distance"), chinDistance);
 
         FlowPane buffs = new FlowPane(14, 8, slayerTask, wilderness, forinthry,
@@ -132,24 +136,24 @@ public class PlayerSetupPane extends VBox {
         GridPane gear = grid();
         int row = 0;
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ImageView icon = new ImageView();
-            icon.setFitWidth(24);
-            icon.setFitHeight(24);
-            icon.setPreserveRatio(true);
-            gearIcons.put(slot, icon);
-
-            Button pick = new Button("(empty)");
-            pick.setMaxWidth(Double.MAX_VALUE);
-            pick.setAlignment(Pos.CENTER_LEFT);
-            pick.setGraphic(icon);
-            pick.setOnAction(e -> pickItem(slot));
+            SearchableDropdown<EquipmentItem> dropdown = new SearchableDropdown<>(
+                    data.equipmentForSlot(slot), EquipmentItem::displayName,
+                    item -> item.image, StatTooltips::forEquipment);
+            dropdown.setFieldPromptText("(empty)");
+            dropdown.setMaxWidth(Double.MAX_VALUE);
+            dropdown.setOnSelect(item -> {
+                if (setup != null) {
+                    setup.setEquipped(slot, item);
+                    changed();
+                }
+            });
             Button clear = new Button("✕");
             clear.setOnAction(e -> {
                 setup.setEquipped(slot, null);
                 changed();
             });
-            gearButtons.put(slot, pick);
-            gear.addRow(row++, new Label(slot.displayName()), pick, clear);
+            gearDropdowns.put(slot, dropdown);
+            gear.addRow(row++, new Label(slot.displayName()), dropdown, clear);
         }
         ColumnConstraints c0 = new ColumnConstraints(72);
         ColumnConstraints c1 = new ColumnConstraints();
@@ -208,30 +212,6 @@ public class PlayerSetupPane extends VBox {
         });
     }
 
-    private void pickItem(EquipmentSlot slot) {
-        SearchPickerDialog<EquipmentItem> picker = new SearchPickerDialog<>(
-                "Choose " + slot.displayName().toLowerCase(),
-                data.equipmentForSlot(slot),
-                EquipmentItem::displayName,
-                item -> item.image);
-        EquipmentItem chosen = picker.showAndPick();
-        if (chosen != null) {
-            setup.setEquipped(slot, chosen);
-            changed();
-        }
-    }
-
-    private void pickSpell() {
-        SearchPickerDialog<SpellData> picker = new SearchPickerDialog<>(
-                "Choose spell", data.allSpells(), SpellData::displayName, s -> s.image);
-        SpellData chosen = picker.showAndPick();
-        if (chosen != null && setup != null) {
-            setup.setSpell(chosen);
-            refreshSpellButton();
-            changed();
-        }
-    }
-
     /** Binds the pane to a setup (or null to disable). */
     public void setSetup(PlayerSetup setup) {
         this.setup = setup;
@@ -255,8 +235,8 @@ public class PlayerSetupPane extends VBox {
             kandarin.setSelected(setup.isKandarinDiary());
             sunfire.setSelected(setup.isSunfireRunes());
             chinDistance.getValueFactory().setValue(setup.getChinchompaDistance());
-            refreshSpellButton();
-            refreshGearButtons();
+            refreshSpellDropdown();
+            refreshGearDropdowns();
             refreshSummary();
         } finally {
             updating = false;
@@ -290,35 +270,18 @@ public class PlayerSetupPane extends VBox {
         potion.setValue(setup.getPotion());
 
         boolean isMagic = type == AttackType.MAGIC;
-        spellButton.setDisable(!isMagic);
+        spellDropdown.setDisable(!isMagic);
         clearSpell.setDisable(!isMagic);
         chinDistance.setDisable(type != AttackType.RANGED);
     }
 
-    private void refreshSpellButton() {
-        SpellData spell = setup == null ? null : setup.getSpell();
-        spellButton.setText(spell == null ? "(no spell)" : spell.displayName());
+    private void refreshSpellDropdown() {
+        spellDropdown.setValue(setup == null ? null : setup.getSpell());
     }
 
-    private void refreshGearButtons() {
-        for (Map.Entry<EquipmentSlot, Button> e : gearButtons.entrySet()) {
-            EquipmentItem item = setup.getEquipped(e.getKey());
-            e.getValue().setText(item == null ? "(empty)" : item.displayName());
-            ImageView icon = gearIcons.get(e.getKey());
-            icon.setImage(null);
-            if (item != null && item.image != null && !item.image.isBlank()) {
-                EquipmentItem current = item;
-                Image cached = ImageCache.cached(item.image);
-                if (cached != null) {
-                    icon.setImage(cached);
-                } else {
-                    ImageCache.load(item.image, img -> {
-                        if (setup != null && setup.getEquipped(e.getKey()) == current) {
-                            icon.setImage(img);
-                        }
-                    });
-                }
-            }
+    private void refreshGearDropdowns() {
+        for (Map.Entry<EquipmentSlot, SearchableDropdown<EquipmentItem>> e : gearDropdowns.entrySet()) {
+            e.getValue().setValue(setup == null ? null : setup.getEquipped(e.getKey()));
         }
     }
 
@@ -343,8 +306,8 @@ public class PlayerSetupPane extends VBox {
 
     private void changed() {
         refreshSummary();
-        refreshGearButtons();
-        refreshSpellButton();
+        refreshGearDropdowns();
+        refreshSpellDropdown();
         if (onChanged != null) {
             onChanged.run();
         }

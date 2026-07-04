@@ -179,8 +179,22 @@ public class App extends Application {
             }
         });
 
-        Button add = new Button("Add...");
-        add.setOnAction(e -> addTargets());
+        List<Monster> pickable = new ArrayList<>(presets.loadMonsterPresets());
+        pickable.addAll(data.allMonsters());
+        com.osrs.dps.ui.SearchableDropdown<Monster> addDropdown =
+                new com.osrs.dps.ui.SearchableDropdown<>(pickable, Monster::displayName,
+                        mo -> mo.image, com.osrs.dps.ui.StatTooltips::forMonster);
+        addDropdown.setClearOnSelect(true);
+        addDropdown.setFieldPromptText("Type to add a target...");
+        addDropdown.setOnSelect(monster -> {
+            if (monster != null && !targets.contains(monster)) {
+                targets.add(monster);
+                refreshComparison();
+            }
+        });
+
+        Button addMany = new Button("Add many...");
+        addMany.setOnAction(e -> addTargets());
         Button remove = new Button("Remove");
         remove.setOnAction(e -> {
             Monster sel = targetList.getSelectionModel().getSelectedItem();
@@ -194,11 +208,11 @@ public class App extends Application {
         Button savePreset = new Button("Save preset");
         savePreset.setOnAction(e -> saveMonsterPreset());
 
-        HBox row1 = new HBox(6, add, remove);
+        HBox row1 = new HBox(6, addMany, remove);
         HBox row2 = new HBox(6, edit, savePreset);
         Label header = new Label("Targets");
         header.getStyleClass().add("title-4");
-        VBox box = new VBox(8, header, targetList, row1, row2);
+        VBox box = new VBox(8, header, addDropdown, targetList, row1, row2);
         box.setPadding(new Insets(10));
         VBox.setVgrow(targetList, Priority.ALWAYS);
         return box;

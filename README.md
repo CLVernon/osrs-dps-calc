@@ -12,9 +12,11 @@ for both players and monsters.
 - **Your character** — import levels straight from the official OSRS hiscores by username
   (regular/ironman/HCIM/UIM boards), or enter them manually. Stats are saved and shared by
   every gear setup, so comparisons are always for the same character.
-- **Multiple gear setups** — add, duplicate, remove loadouts; each has its own equipment
-  with item icons, attack style, prayer, potion, spell, and situational buffs (slayer
-  task, wilderness, Mark of Darkness, Charge, Kandarin diary, sunfire runes...).
+- **Multiple gear setups** — add, duplicate, remove loadouts; each has its own equipment,
+  attack style, prayer, potion, spell, and situational buffs (slayer task, wilderness,
+  Mark of Darkness, Charge, Kandarin diary, sunfire runes...). Gear, spell and target
+  fields are inline type-to-search dropdowns with item icons; hovering an entry shows its
+  full stats.
 - **Multiple targets at once** — build a target list from 2,800+ wiki monsters (the picker
   supports Ctrl/Shift multi-select, e.g. grab every CoX boss in one go), plus an editor
   for custom monsters (all attributes, elemental weaknesses, flat armour, ToA invocation
