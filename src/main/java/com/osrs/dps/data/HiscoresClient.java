@@ -23,6 +23,16 @@ public final class HiscoresClient {
             this.endpoint = endpoint;
         }
 
+        /** Wiki chat-badge icon file name, or null for regular accounts. */
+        public String imageName() {
+            return switch (this) {
+                case REGULAR -> null;
+                case IRONMAN -> "Ironman chat badge.png";
+                case HARDCORE_IRONMAN -> "Hardcore ironman chat badge.png";
+                case ULTIMATE_IRONMAN -> "Ultimate ironman chat badge.png";
+            };
+        }
+
         @Override
         public String toString() {
             return displayName;

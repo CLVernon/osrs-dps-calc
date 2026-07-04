@@ -56,6 +56,28 @@ public enum Prayer {
         return magicDamageTenths;
     }
 
+    /** Wiki icon file name (combined melee tiers use the strength prayer's icon). */
+    public String imageName() {
+        return switch (this) {
+            case NONE -> null;
+            case TIER_1_MELEE -> "Burst of Strength.png";
+            case TIER_2_MELEE -> "Superhuman Strength.png";
+            case TIER_3_MELEE -> "Ultimate Strength.png";
+            case CHIVALRY -> "Chivalry.png";
+            case PIETY -> "Piety.png";
+            case SHARP_EYE -> "Sharp Eye.png";
+            case HAWK_EYE -> "Hawk Eye.png";
+            case EAGLE_EYE -> "Eagle Eye.png";
+            case DEADEYE -> "Deadeye.png";
+            case RIGOUR -> "Rigour.png";
+            case MYSTIC_WILL -> "Mystic Will.png";
+            case MYSTIC_LORE -> "Mystic Lore.png";
+            case MYSTIC_MIGHT -> "Mystic Might.png";
+            case MYSTIC_VIGOUR -> "Mystic Vigour.png";
+            case AUGURY -> "Augury.png";
+        };
+    }
+
     public static Prayer[] forAttackType(AttackType type) {
         if (type == null) {
             return values();

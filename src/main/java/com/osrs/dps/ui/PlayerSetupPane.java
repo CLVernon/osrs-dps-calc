@@ -18,18 +18,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Editor form for a single player setup. Mutates the setup and notifies on change. */
+/** Editor form for a single gear setup. Mutates the setup and notifies on change. */
 public class PlayerSetupPane extends VBox {
 
     private final DataRepository data = DataRepository.get();
@@ -46,17 +48,42 @@ public class PlayerSetupPane extends VBox {
     private final SearchableDropdown<SpellData> spellDropdown = new SearchableDropdown<>(
             java.util.List.of(), SpellData::displayName, s -> s.image, StatTooltips::forSpell);
     private final Button clearSpell = new Button("✕");
-    private final CheckBox slayerTask = new CheckBox("On Slayer task");
-    private final CheckBox wilderness = new CheckBox("In Wilderness");
-    private final CheckBox forinthry = new CheckBox("Forinthry Surge");
-    private final CheckBox markOfDarkness = new CheckBox("Mark of Darkness");
-    private final CheckBox charge = new CheckBox("Charge");
-    private final CheckBox kandarin = new CheckBox("Kandarin diary");
-    private final CheckBox sunfire = new CheckBox("Sunfire runes");
+    private final CheckBox slayerTask = buff("On Slayer task", "Slayer icon.png",
+            "Enables black mask / slayer helmet bonuses against the target");
+    private final CheckBox wilderness = buff("In Wilderness", "Skull (status) icon.png",
+            "Target is in the Wilderness: enables revenant weapon bonuses\n"
+                    + "(Craw's/Webweaver bow, Viggora's/Ursine chainmace, Thammaron's/Accursed sceptre)");
+    private final CheckBox forinthry = buff("Forinthry Surge", "Skull (status) icon.png",
+            "Boosts the Amulet of avarice bonus vs revenants (35% instead of 20%)");
+    private final CheckBox markOfDarkness = buff("Mark of Darkness", "Mark of Darkness.png",
+            "Doubles demonbane spell accuracy bonus and adds +25% damage vs demons\n"
+                    + "(+50% with the Purging staff)");
+    private final CheckBox charge = buff("Charge", "Charge.png",
+            "+10 max hit to god spells when wearing the matching god cape");
+    private final CheckBox kandarin = buff("Kandarin diary", "Achievement Diaries icon.png",
+            "Kandarin hard diary: +10% enchanted bolt proc chance");
+    private final CheckBox sunfire = buff("Sunfire runes", "Sunfire rune.png",
+            "Fire spells get a minimum hit of 10% of the max hit");
     private final Spinner<Integer> chinDistance = new Spinner<>(1, 10, 5);
-    private final Map<EquipmentSlot, SearchableDropdown<EquipmentItem>> gearDropdowns =
-            new EnumMap<>(EquipmentSlot.class);
+    private final Map<EquipmentSlot, Button> slotButtons = new EnumMap<>(EquipmentSlot.class);
+    private final Map<EquipmentSlot, ImageView> slotIcons = new EnumMap<>(EquipmentSlot.class);
     private final Label bonusSummary = new Label();
+
+    private static final Map<EquipmentSlot, String> SLOT_PLACEHOLDERS = new EnumMap<>(Map.of(
+            EquipmentSlot.HEAD, "Head slot.png",
+            EquipmentSlot.CAPE, "Cape slot.png",
+            EquipmentSlot.NECK, "Neck slot.png",
+            EquipmentSlot.AMMO, "Ammo slot.png",
+            EquipmentSlot.WEAPON, "Weapon slot.png",
+            EquipmentSlot.BODY, "Body slot.png",
+            EquipmentSlot.SHIELD, "Shield slot.png",
+            EquipmentSlot.LEGS, "Legs slot.png",
+            EquipmentSlot.HANDS, "Hands slot.png",
+            EquipmentSlot.FEET, "Feet slot.png"));
+
+    static {
+        SLOT_PLACEHOLDERS.put(EquipmentSlot.RING, "Ring slot.png");
+    }
 
     public PlayerSetupPane(Runnable onChanged) {
         this.onChanged = onChanged;
@@ -71,6 +98,7 @@ public class PlayerSetupPane extends VBox {
         });
 
         attackType.getItems().addAll(AttackType.values());
+        IconCombo.decorate(attackType, AttackType::imageName);
         attackType.valueProperty().addListener((o, old, type) -> {
             if (!updating && setup != null && type != null) {
                 setup.setAttackType(type);
@@ -78,6 +106,8 @@ public class PlayerSetupPane extends VBox {
                 changed();
             }
         });
+        IconCombo.decorate(prayer, Prayer::imageName);
+        IconCombo.decorate(potion, Potion::imageName);
         wireCombo(stance, v -> setup.setStance(v));
         wireCombo(prayer, v -> setup.setPrayer(v));
         wireCombo(potion, v -> setup.setPotion(v));
@@ -106,14 +136,6 @@ public class PlayerSetupPane extends VBox {
         wireCheck(kandarin, v -> setup.setKandarinDiary(v));
         wireCheck(sunfire, v -> setup.setSunfireRunes(v));
 
-        slayerTask.setTooltip(new Tooltip("Enables black mask / slayer helmet bonuses"));
-        wilderness.setTooltip(new Tooltip("Enables revenant (wilderness) weapon bonuses"));
-        forinthry.setTooltip(new Tooltip("Boosts the Amulet of avarice bonus vs revenants"));
-        markOfDarkness.setTooltip(new Tooltip("Boosts demonbane spells"));
-        charge.setTooltip(new Tooltip("+10 max hit to god spells with the matching cape"));
-        kandarin.setTooltip(new Tooltip("+10% enchanted bolt proc chance"));
-        sunfire.setTooltip(new Tooltip("Fire spells: minimum hit of 10% of max"));
-
         chinDistance.setEditable(true);
         chinDistance.setPrefWidth(70);
         chinDistance.valueProperty().addListener((o, old, v) -> {
@@ -133,34 +155,6 @@ public class PlayerSetupPane extends VBox {
         FlowPane buffs = new FlowPane(14, 8, slayerTask, wilderness, forinthry,
                 markOfDarkness, charge, kandarin, sunfire);
 
-        GridPane gear = grid();
-        int row = 0;
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            SearchableDropdown<EquipmentItem> dropdown = new SearchableDropdown<>(
-                    data.equipmentForSlot(slot), EquipmentItem::displayName,
-                    item -> item.image, StatTooltips::forEquipment);
-            dropdown.setFieldPromptText("(empty)");
-            dropdown.setMaxWidth(Double.MAX_VALUE);
-            dropdown.setOnSelect(item -> {
-                if (setup != null) {
-                    setup.setEquipped(slot, item);
-                    changed();
-                }
-            });
-            Button clear = new Button("✕");
-            clear.setOnAction(e -> {
-                setup.setEquipped(slot, null);
-                changed();
-            });
-            gearDropdowns.put(slot, dropdown);
-            gear.addRow(row++, new Label(slot.displayName()), dropdown, clear);
-        }
-        ColumnConstraints c0 = new ColumnConstraints(72);
-        ColumnConstraints c1 = new ColumnConstraints();
-        c1.setHgrow(Priority.ALWAYS);
-        c1.setFillWidth(true);
-        gear.getColumnConstraints().addAll(c0, c1);
-
         bonusSummary.setWrapText(true);
         bonusSummary.getStyleClass().add("text-subtle");
 
@@ -168,8 +162,113 @@ public class PlayerSetupPane extends VBox {
                 labeledRow("Name", nameField),
                 section("Combat"), combat,
                 section("Buffs"), buffs,
-                section("Equipment"), gear,
+                section("Equipment"), buildEquipmentGrid(),
                 bonusSummary);
+    }
+
+    // ------------------------------------------------- OSRS-style slot layout
+
+    private GridPane buildEquipmentGrid() {
+        GridPane grid = new GridPane();
+        grid.setHgap(6);
+        grid.setVgap(6);
+        grid.setAlignment(Pos.TOP_LEFT);
+
+        placeSlot(grid, EquipmentSlot.HEAD, 1, 0);
+        placeSlot(grid, EquipmentSlot.CAPE, 0, 1);
+        placeSlot(grid, EquipmentSlot.NECK, 1, 1);
+        placeSlot(grid, EquipmentSlot.AMMO, 2, 1);
+        placeSlot(grid, EquipmentSlot.WEAPON, 0, 2);
+        placeSlot(grid, EquipmentSlot.BODY, 1, 2);
+        placeSlot(grid, EquipmentSlot.SHIELD, 2, 2);
+        placeSlot(grid, EquipmentSlot.LEGS, 1, 3);
+        placeSlot(grid, EquipmentSlot.HANDS, 0, 4);
+        placeSlot(grid, EquipmentSlot.FEET, 1, 4);
+        placeSlot(grid, EquipmentSlot.RING, 2, 4);
+        return grid;
+    }
+
+    private void placeSlot(GridPane grid, EquipmentSlot slot, int col, int row) {
+        ImageView icon = new ImageView();
+        icon.setFitWidth(32);
+        icon.setFitHeight(32);
+        icon.setPreserveRatio(true);
+        slotIcons.put(slot, icon);
+
+        Button button = new Button();
+        button.setGraphic(icon);
+        button.setPrefSize(52, 52);
+        button.setMinSize(52, 52);
+        button.setOnMouseClicked(e -> {
+            if (e.getButton() == MouseButton.SECONDARY) {
+                if (setup != null) {
+                    setup.setEquipped(slot, null);
+                    changed();
+                }
+            } else if (e.getButton() == MouseButton.PRIMARY) {
+                openSlotPicker(slot, button);
+            }
+        });
+        slotButtons.put(slot, button);
+        grid.add(button, col, row);
+        refreshSlot(slot);
+    }
+
+    private void openSlotPicker(EquipmentSlot slot, Button anchor) {
+        if (setup == null) {
+            return;
+        }
+        PopupPicker.show(anchor, data.equipmentForSlot(slot),
+                EquipmentItem::displayName, item -> item.image, StatTooltips::forEquipment,
+                item -> {
+                    setup.setEquipped(slot, item);
+                    changed();
+                });
+    }
+
+    private void refreshSlot(EquipmentSlot slot) {
+        Button button = slotButtons.get(slot);
+        ImageView icon = slotIcons.get(slot);
+        EquipmentItem item = setup == null ? null : setup.getEquipped(slot);
+        if (item == null) {
+            Icons.set(icon, SLOT_PLACEHOLDERS.get(slot));
+            icon.setOpacity(0.35);
+            Tooltip tip = new Tooltip(slot.displayName()
+                    + " slot\nClick to choose an item; right-click to clear");
+            tip.setShowDelay(Duration.millis(250));
+            button.setTooltip(tip);
+        } else {
+            Icons.set(icon, item.image);
+            icon.setOpacity(1.0);
+            Tooltip tip = new Tooltip();
+            javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(4,
+                    StatTooltips.forEquipment(item),
+                    subtleLabel("Click to change; right-click to clear"));
+            tip.setGraphic(content);
+            tip.setShowDelay(Duration.millis(250));
+            tip.setShowDuration(Duration.INDEFINITE);
+            button.setTooltip(tip);
+        }
+    }
+
+    private static Label subtleLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-text-fill: #9da7b3; -fx-font-size: 11px;");
+        return label;
+    }
+
+    // ---------------------------------------------------------------- helpers
+
+    private static CheckBox buff(String text, String imageName, String tooltip) {
+        CheckBox box = new CheckBox(text);
+        box.setGraphic(Icons.view(imageName, 16));
+        Tooltip tip = new Tooltip(tooltip);
+        tip.setShowDelay(Duration.millis(200));
+        tip.setShowDuration(Duration.INDEFINITE);
+        tip.setWrapText(true);
+        tip.setMaxWidth(360);
+        box.setTooltip(tip);
+        return box;
     }
 
     private static GridPane grid() {
@@ -236,7 +335,7 @@ public class PlayerSetupPane extends VBox {
             sunfire.setSelected(setup.isSunfireRunes());
             chinDistance.getValueFactory().setValue(setup.getChinchompaDistance());
             refreshSpellDropdown();
-            refreshGearDropdowns();
+            refreshAllSlots();
             refreshSummary();
         } finally {
             updating = false;
@@ -279,9 +378,9 @@ public class PlayerSetupPane extends VBox {
         spellDropdown.setValue(setup == null ? null : setup.getSpell());
     }
 
-    private void refreshGearDropdowns() {
-        for (Map.Entry<EquipmentSlot, SearchableDropdown<EquipmentItem>> e : gearDropdowns.entrySet()) {
-            e.getValue().setValue(setup == null ? null : setup.getEquipped(e.getKey()));
+    private void refreshAllSlots() {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            refreshSlot(slot);
         }
     }
 
@@ -306,7 +405,7 @@ public class PlayerSetupPane extends VBox {
 
     private void changed() {
         refreshSummary();
-        refreshGearDropdowns();
+        refreshAllSlots();
         refreshSpellDropdown();
         if (onChanged != null) {
             onChanged.run();

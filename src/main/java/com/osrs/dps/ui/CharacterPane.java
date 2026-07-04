@@ -58,6 +58,7 @@ public class CharacterPane extends VBox {
 
         gameMode.getItems().addAll(HiscoresClient.GameMode.values());
         gameMode.setValue(HiscoresClient.GameMode.REGULAR);
+        IconCombo.decorate(gameMode, HiscoresClient.GameMode::imageName);
 
         importButton.setTooltip(new Tooltip("Fetch levels from the official OSRS hiscores"));
         importButton.setOnAction(e -> importFromHiscores());
@@ -77,16 +78,19 @@ public class CharacterPane extends VBox {
         wireLevel(currentHp, v -> character.currentHitpoints = v);
         wireLevel(mining, v -> character.mining = v);
 
+        // OSRS stats-tab style: skill icon + level, two per row
         GridPane levels = new GridPane();
-        levels.setHgap(8);
-        levels.setVgap(5);
-        levels.addRow(0, new Label("Attack"), attack, new Label("Strength"), strength);
-        levels.addRow(1, new Label("Defence"), defence, new Label("Ranged"), ranged);
-        levels.addRow(2, new Label("Magic"), magic, new Label("Hitpoints"), hitpoints);
-        levels.addRow(3, new Label("Cur. HP"), currentHp, new Label("Mining"), mining);
-
-        currentHp.setTooltip(new Tooltip("Current hitpoints, for Dharok's set effect"));
-        mining.setTooltip(new Tooltip("Mining level, for CoX Guardians"));
+        levels.setHgap(10);
+        levels.setVgap(6);
+        levels.add(skillCell("Attack icon.png", "Attack", attack), 0, 0);
+        levels.add(skillCell("Strength icon.png", "Strength", strength), 1, 0);
+        levels.add(skillCell("Defence icon.png", "Defence", defence), 0, 1);
+        levels.add(skillCell("Ranged icon.png", "Ranged", ranged), 1, 1);
+        levels.add(skillCell("Magic icon.png", "Magic", magic), 0, 2);
+        levels.add(skillCell("Hitpoints icon.png", "Hitpoints", hitpoints), 1, 2);
+        levels.add(skillCell("Hitpoints icon.png",
+                "Current hitpoints (for Dharok's set effect)", currentHp), 0, 3);
+        levels.add(skillCell("Mining icon.png", "Mining (for CoX Guardians)", mining), 1, 3);
 
         getChildren().addAll(header, nameRow, gameMode, statusLabel, levels);
     }
@@ -96,6 +100,17 @@ public class CharacterPane extends VBox {
         s.setEditable(true);
         s.setPrefWidth(72);
         return s;
+    }
+
+    /** A stats-tab style cell: skill icon next to the level input, name on hover. */
+    private static HBox skillCell(String iconName, String tooltip, Spinner<Integer> spinner) {
+        javafx.scene.image.ImageView icon = Icons.view(iconName, 20);
+        HBox cell = new HBox(6, icon, spinner);
+        cell.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        Tooltip tip = new Tooltip(tooltip);
+        tip.setShowDelay(javafx.util.Duration.millis(200));
+        Tooltip.install(cell, tip);
+        return cell;
     }
 
     private void wireLevel(Spinner<Integer> spinner, IntConsumer apply) {

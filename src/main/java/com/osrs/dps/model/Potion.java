@@ -63,6 +63,26 @@ public enum Potion {
         };
     }
 
+    /** Wiki icon file name. */
+    public String imageName() {
+        return switch (this) {
+            case NONE -> null;
+            case ATTACK_POTION -> "Attack potion(4).png";
+            case STRENGTH_POTION -> "Strength potion(4).png";
+            case COMBAT_POTION -> "Combat potion(4).png";
+            case SUPER_ATTACK -> "Super attack(4).png";
+            case SUPER_STRENGTH -> "Super strength(4).png";
+            case SUPER_COMBAT -> "Super combat potion(4).png";
+            case RANGING_POTION -> "Ranging potion(4).png";
+            case BASTION_POTION -> "Bastion potion(4).png";
+            case MAGIC_POTION -> "Magic potion(4).png";
+            case IMBUED_HEART -> "Imbued heart.png";
+            case SATURATED_HEART -> "Saturated heart.png";
+            case SMELLING_SALTS -> "Smelling salts (2).png";
+            case OVERLOAD_RAID -> "Overload (+)(4).png";
+        };
+    }
+
     public static Potion[] forAttackType(AttackType type) {
         if (type == null) {
             return values();

@@ -263,6 +263,29 @@ public class App extends Application {
 
     private VBox buildSetupListPanel() {
         setupList.setPrefWidth(240);
+        setupList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            private final ImageView icon = new ImageView();
+
+            {
+                icon.setFitWidth(22);
+                icon.setFitHeight(22);
+                icon.setPreserveRatio(true);
+            }
+
+            @Override
+            protected void updateItem(PlayerSetup s, boolean empty) {
+                super.updateItem(s, empty);
+                if (empty || s == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(s.getName());
+                var weapon = s.getWeapon();
+                com.osrs.dps.ui.Icons.set(icon, weapon == null ? null : weapon.image);
+                setGraphic(icon);
+            }
+        });
 
         Button add = new Button("Add");
         add.setOnAction(e -> {
