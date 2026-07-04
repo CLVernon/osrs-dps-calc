@@ -40,16 +40,32 @@ public final class SearchPickerDialog<T> {
 
     /** Shows the dialog; returns the chosen item or null if cancelled. */
     public T showAndPick() {
-        Dialog<T> dialog = new Dialog<>();
+        List<T> picked = show(false);
+        return picked == null || picked.isEmpty() ? null : picked.get(0);
+    }
+
+    /** Shows the dialog with multi-select; returns the chosen items or null if cancelled. */
+    public List<T> showAndPickAll() {
+        return show(true);
+    }
+
+    private List<T> show(boolean multiSelect) {
+        Dialog<List<T>> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         TextField search = new TextField();
-        search.setPromptText("Type to search...");
+        search.setPromptText(multiSelect
+                ? "Type to search... (Ctrl/Shift-click to select several)"
+                : "Type to search...");
 
         ObservableList<T> all = FXCollections.observableArrayList(items);
         FilteredList<T> filtered = new FilteredList<>(all);
         ListView<T> listView = new ListView<>(filtered);
+        if (multiSelect) {
+            listView.getSelectionModel().setSelectionMode(
+                    javafx.scene.control.SelectionMode.MULTIPLE);
+        }
         listView.setPrefSize(440, 400);
         listView.setCellFactory(lv -> new ListCell<>() {
             @Override
@@ -98,21 +114,22 @@ public final class SearchPickerDialog<T> {
                     listView.getSelectionModel().select(0);
                 }
             } else if (e.getCode() == KeyCode.ENTER && !listView.getSelectionModel().isEmpty()) {
-                dialog.setResult(listView.getSelectionModel().getSelectedItem());
+                dialog.setResult(List.copyOf(listView.getSelectionModel().getSelectedItems()));
                 dialog.close();
             }
         });
         listView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2 && !listView.getSelectionModel().isEmpty()) {
-                dialog.setResult(listView.getSelectionModel().getSelectedItem());
+                dialog.setResult(List.copyOf(listView.getSelectionModel().getSelectedItems()));
                 dialog.close();
             }
         });
 
         VBox content = new VBox(8, search, listView);
         dialog.getDialogPane().setContent(content);
-        dialog.setResultConverter(button ->
-                button == ButtonType.OK ? listView.getSelectionModel().getSelectedItem() : null);
+        dialog.setResultConverter(button -> button == ButtonType.OK
+                ? List.copyOf(listView.getSelectionModel().getSelectedItems())
+                : null);
         javafx.application.Platform.runLater(search::requestFocus);
         return dialog.showAndWait().orElse(null);
     }

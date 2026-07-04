@@ -53,10 +53,8 @@ public class App extends Application {
     private CharacterPane characterPane;
     private PlayerCharacter character = new PlayerCharacter();
 
-    private Monster selectedMonster;
-    private final Button monsterButton = new Button("Choose monster...");
-    private final ImageView monsterIcon = new ImageView();
-    private final Label monsterInfo = new Label();
+    private final ObservableList<Monster> targets = FXCollections.observableArrayList();
+    private final ListView<Monster> targetList = new ListView<>(targets);
     private final Label statusLabel = new Label();
 
     public static void main(String[] args) {
@@ -105,18 +103,22 @@ public class App extends Application {
         characterPane = new CharacterPane(this::characterChanged);
         characterPane.setCharacter(character);
 
-        selectedMonster = data.findMonster("Zulrah (Serpentine)");
-        if (selectedMonster == null && !data.allMonsters().isEmpty()) {
-            selectedMonster = data.allMonsters().get(0);
+        Monster defaultTarget = data.findMonster("Zulrah (Serpentine)");
+        if (defaultTarget == null && !data.allMonsters().isEmpty()) {
+            defaultTarget = data.allMonsters().get(0);
+        }
+        if (defaultTarget != null) {
+            targets.add(defaultTarget);
         }
         PlayerSetup first = new PlayerSetup("Setup 1");
         first.setCharacter(character);
         setups.add(first);
 
         BorderPane root = new BorderPane();
-        root.setTop(buildMonsterBar());
-        SplitPane split = new SplitPane(buildSetupListPanel(), buildEditorPanel());
-        split.setDividerPositions(0.24);
+        root.setTop(buildStatusBar());
+        SplitPane split = new SplitPane(buildSetupListPanel(), buildEditorPanel(),
+                buildTargetsPanel());
+        split.setDividerPositions(0.22, 0.78);
         root.setCenter(split);
         root.setBottom(comparisonPane);
 
@@ -124,93 +126,123 @@ public class App extends Application {
                 (o, old, sel) -> editorPane.setSetup(sel));
         setupList.getSelectionModel().select(first);
 
-        updateMonsterLabels();
         refreshComparison();
 
         stage.getScene().setRoot(root);
     }
 
-    // ------------------------------------------------------------ monster bar
+    // ------------------------------------------------------------- status bar
 
-    private ToolBar buildMonsterBar() {
-        monsterIcon.setFitWidth(28);
-        monsterIcon.setFitHeight(28);
-        monsterIcon.setPreserveRatio(true);
-        monsterButton.setGraphic(monsterIcon);
-        monsterButton.setOnAction(e -> chooseMonster());
-        Button edit = new Button("Edit / customise...");
-        edit.setOnAction(e -> editMonster());
-        Button savePreset = new Button("Save monster preset");
-        savePreset.setOnAction(e -> saveMonsterPreset());
-        monsterInfo.getStyleClass().add("text-subtle");
+    private ToolBar buildStatusBar() {
         statusLabel.getStyleClass().add("text-subtle");
+        Label hint = new Label(
+                "Compare gear setups (rows) against target monsters (columns) in the table below.");
+        hint.getStyleClass().add("text-subtle");
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        return new ToolBar(new Label("Target:"), monsterButton, edit, savePreset,
-                new Separator(), monsterInfo, spacer, statusLabel);
+        return new ToolBar(hint, spacer, statusLabel);
     }
 
-    private void chooseMonster() {
+    // ---------------------------------------------------------- targets panel
+
+    private VBox buildTargetsPanel() {
+        targetList.setPrefWidth(230);
+        targetList.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            private final ImageView icon = new ImageView();
+
+            {
+                icon.setFitWidth(22);
+                icon.setFitHeight(22);
+                icon.setPreserveRatio(true);
+            }
+
+            @Override
+            protected void updateItem(Monster monster, boolean empty) {
+                super.updateItem(monster, empty);
+                if (empty || monster == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                setText(monster.displayName());
+                icon.setImage(monster.image == null ? null
+                        : com.osrs.dps.data.ImageCache.cached(monster.image));
+                setGraphic(icon);
+                if (icon.getImage() == null && monster.image != null && !monster.image.isBlank()) {
+                    Monster current = monster;
+                    com.osrs.dps.data.ImageCache.load(monster.image, img -> {
+                        if (getItem() == current) {
+                            icon.setImage(img);
+                        }
+                    });
+                }
+            }
+        });
+
+        Button add = new Button("Add...");
+        add.setOnAction(e -> addTargets());
+        Button remove = new Button("Remove");
+        remove.setOnAction(e -> {
+            Monster sel = targetList.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                targets.remove(sel);
+                refreshComparison();
+            }
+        });
+        Button edit = new Button("Edit...");
+        edit.setOnAction(e -> editTarget());
+        Button savePreset = new Button("Save preset");
+        savePreset.setOnAction(e -> saveMonsterPreset());
+
+        HBox row1 = new HBox(6, add, remove);
+        HBox row2 = new HBox(6, edit, savePreset);
+        Label header = new Label("Targets");
+        header.getStyleClass().add("title-4");
+        VBox box = new VBox(8, header, targetList, row1, row2);
+        box.setPadding(new Insets(10));
+        VBox.setVgrow(targetList, Priority.ALWAYS);
+        return box;
+    }
+
+    private void addTargets() {
         List<Monster> all = new ArrayList<>(presets.loadMonsterPresets());
         all.addAll(data.allMonsters());
         SearchPickerDialog<Monster> picker = new SearchPickerDialog<>(
-                "Choose monster", all, Monster::displayName, mo -> mo.image);
-        Monster chosen = picker.showAndPick();
-        if (chosen != null) {
-            selectedMonster = chosen;
-            updateMonsterLabels();
+                "Add targets", all, Monster::displayName, mo -> mo.image);
+        List<Monster> chosen = picker.showAndPickAll();
+        if (chosen != null && !chosen.isEmpty()) {
+            for (Monster monster : chosen) {
+                if (!targets.contains(monster)) {
+                    targets.add(monster);
+                }
+            }
             refreshComparison();
         }
     }
 
-    private void editMonster() {
-        Monster base = selectedMonster != null ? selectedMonster : new Monster();
-        Monster edited = MonsterEditorDialog.edit(base);
+    private void editTarget() {
+        Monster sel = targetList.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            return;
+        }
+        Monster edited = MonsterEditorDialog.edit(sel);
         if (edited != null) {
-            selectedMonster = edited;
-            updateMonsterLabels();
+            targets.set(targets.indexOf(sel), edited);
             refreshComparison();
         }
     }
 
     private void saveMonsterPreset() {
-        if (selectedMonster == null) {
+        Monster sel = targetList.getSelectionModel().getSelectedItem();
+        if (sel == null) {
             return;
         }
         try {
-            presets.saveMonsterPreset(selectedMonster);
-            info("Monster preset saved", "Saved \"" + selectedMonster.displayName() + "\".");
+            presets.saveMonsterPreset(sel);
+            info("Monster preset saved", "Saved \"" + sel.displayName() + "\".");
         } catch (IOException ex) {
             error("Could not save monster preset", ex.getMessage());
         }
-    }
-
-    private void updateMonsterLabels() {
-        if (selectedMonster == null) {
-            monsterButton.setText("Choose monster...");
-            monsterInfo.setText("");
-            monsterIcon.setImage(null);
-            return;
-        }
-        monsterButton.setText(selectedMonster.displayName());
-        monsterIcon.setImage(null);
-        if (selectedMonster.image != null && !selectedMonster.image.isBlank()) {
-            Monster current = selectedMonster;
-            com.osrs.dps.data.ImageCache.load(selectedMonster.image, img -> {
-                if (selectedMonster == current) {
-                    monsterIcon.setImage(img);
-                }
-            });
-        }
-        monsterInfo.setText(String.format(
-                "HP %d | Def %d | Magic %d | Def stab/slash/crush %d/%d/%d, magic %d, ranged %d/%d/%d%s",
-                selectedMonster.skills.hp, selectedMonster.skills.def, selectedMonster.skills.magic,
-                selectedMonster.defensive.stab, selectedMonster.defensive.slash,
-                selectedMonster.defensive.crush, selectedMonster.defensive.magic,
-                selectedMonster.defensive.heavy, selectedMonster.defensive.standard,
-                selectedMonster.defensive.light,
-                selectedMonster.attributes.isEmpty()
-                        ? "" : " | " + String.join(", ", selectedMonster.attributes)));
     }
 
     // ------------------------------------------------------------ setup panel
@@ -305,7 +337,7 @@ public class App extends Application {
 
     private void refreshComparison() {
         setupList.refresh();
-        comparisonPane.refresh(List.copyOf(setups), selectedMonster);
+        comparisonPane.refresh(List.copyOf(setups), List.copyOf(targets));
     }
 
     private void info(String header, String message) {

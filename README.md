@@ -15,18 +15,20 @@ for both players and monsters.
 - **Multiple gear setups** — add, duplicate, remove loadouts; each has its own equipment
   with item icons, attack style, prayer, potion, spell, and situational buffs (slayer
   task, wilderness, Mark of Darkness, Charge, Kandarin diary, sunfire runes...).
-- **Any monster** — 2,800+ monsters bundled from the OSRS Wiki dataset with icons, plus an
-  editor for custom monsters (all attributes, elemental weaknesses, flat armour,
-  ToA invocation level).
+- **Multiple targets at once** — build a target list from 2,800+ wiki monsters (the picker
+  supports Ctrl/Shift multi-select, e.g. grab every CoX boss in one go), plus an editor
+  for custom monsters (all attributes, elemental weaknesses, flat armour, ToA invocation
+  level).
 - **Auto-updating data** — on startup (at most once per day) the app downloads the latest
   equipment/monster/spell data from the wiki DPS tool's dataset into
   `%APPDATA%\osrs-dps-calc\data`, falling back to bundled data offline.
 - **Presets** — save/load gear setups and monsters as JSON under
   `%APPDATA%\osrs-dps-calc\presets`; the character is remembered between sessions.
-- **Comparison table** — all setups ranked by DPS with max hit, accuracy, average damage
-  per attack, attack interval, average hits-to-kill and **overkill-aware time-to-kill**
-  (computed from the full hit distribution, not `hp / dps`). Best setup highlighted;
-  selecting a row lists every special effect that applied.
+- **Comparison matrix** — gear setups as rows, target monsters as columns, DPS in each
+  cell. The best setup per monster is highlighted, cell tooltips show max hit / accuracy /
+  **overkill-aware time-to-kill** (computed from the full hit distribution, not
+  `hp / dps`), a Total TTK column sums kill times across all targets, and selecting a
+  cell lists every special effect that applied to that matchup.
 
 ## Combat mechanics
 

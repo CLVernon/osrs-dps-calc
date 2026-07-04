@@ -12,116 +12,184 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
-/** Table comparing every setup's DPS against the selected monster, best first. */
+/**
+ * Matrix comparing every gear setup (rows) against every target monster (columns).
+ * Cells show DPS; the best setup per monster is highlighted. A total time-to-kill
+ * column sums the expected kill times across all targets.
+ */
 public class ComparisonPane extends VBox {
 
-    /** One comparison row. */
-    public record Row(PlayerSetup setup, DpsResult result, double ttkSeconds, boolean best) {
+    /** One comparison row: a setup and its result against each monster. */
+    public record Row(PlayerSetup setup, Map<Monster, DpsResult> results, double totalTtk) {
     }
 
     private final TableView<Row> table = new TableView<>();
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
-    private final Label notesLabel = new Label();
+    private final Label detailLabel = new Label();
+    /** Best DPS per monster, for per-column highlighting. */
+    private final Map<Monster, Double> bestDps = new IdentityHashMap<>();
+    private double bestTotalTtk = Double.POSITIVE_INFINITY;
+    /** Monster shown in each table column, aligned with the column list. */
+    private final Map<TableColumn<Row, ?>, Monster> columnMonsters = new IdentityHashMap<>();
 
     public ComparisonPane() {
         setSpacing(6);
         setPadding(new Insets(8));
 
         table.setItems(rows);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPrefHeight(220);
+        table.setPrefHeight(240);
+        table.getSelectionModel().setCellSelectionEnabled(true);
+        table.getSelectionModel().getSelectedCells().addListener(
+                (javafx.collections.ListChangeListener<TablePosition>) c -> updateDetail());
 
+        detailLabel.setWrapText(true);
+        detailLabel.getStyleClass().add("text-subtle");
+
+        getChildren().addAll(table, detailLabel);
+    }
+
+    /** Recomputes the matrix for the given setups and monsters. */
+    public void refresh(List<PlayerSetup> setups, List<Monster> monsters) {
+        rows.clear();
+        bestDps.clear();
+        columnMonsters.clear();
+        bestTotalTtk = Double.POSITIVE_INFINITY;
+        detailLabel.setText("");
+
+        List<TableColumn<Row, ?>> columns = new ArrayList<>();
         TableColumn<Row, String> nameCol = new TableColumn<>("Setup");
         nameCol.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().setup().getName()));
-        nameCol.setPrefWidth(180);
+        nameCol.setPrefWidth(170);
+        columns.add(nameCol);
 
-        TableColumn<Row, Number> dpsCol = numberColumn("DPS",
-                r -> r.result().dps(), "%.3f");
-        TableColumn<Row, Number> maxCol = numberColumn("Max hit",
-                r -> (double) r.result().maxHit(), "%.0f");
-        TableColumn<Row, Number> accCol = numberColumn("Accuracy",
-                r -> r.result().accuracy() * 100, "%.1f%%");
-        TableColumn<Row, Number> avgCol = numberColumn("Avg dmg/attack",
-                r -> r.result().avgDamagePerAttack(), "%.2f");
-        TableColumn<Row, Number> speedCol = numberColumn("Speed (s)",
-                r -> r.result().attackIntervalSeconds(), "%.1f");
-        TableColumn<Row, Number> htkCol = numberColumn("Avg hits to kill",
-                r -> r.result().expectedHitsToKill(), "%.1f");
-        TableColumn<Row, Number> ttkCol = numberColumn("Avg TTK (s)",
-                Row::ttkSeconds, "%.1f");
-
-        table.getColumns().setAll(List.of(nameCol, dpsCol, maxCol, accCol, avgCol, speedCol,
-                htkCol, ttkCol));
-
-        // Highlight the best setup.
-        table.setRowFactory(tv -> new TableRow<>() {
-            @Override
-            protected void updateItem(Row row, boolean empty) {
-                super.updateItem(row, empty);
-                if (!empty && row != null && row.best()) {
-                    setStyle("-fx-background-color: rgba(46,160,67,0.30);");
-                } else {
-                    setStyle("");
-                }
-            }
-        });
-
-        table.getSelectionModel().selectedItemProperty().addListener((o, old, row) -> {
-            if (row == null || row.result().notes().isEmpty()) {
-                notesLabel.setText("");
-            } else {
-                notesLabel.setText("Applied effects: " + String.join("; ", row.result().notes()));
-            }
-        });
-        notesLabel.setWrapText(true);
-        notesLabel.setStyle("-fx-text-fill: #555;");
-
-        getChildren().addAll(table, notesLabel);
-    }
-
-    private TableColumn<Row, Number> numberColumn(String title,
-                                                  java.util.function.ToDoubleFunction<Row> extractor,
-                                                  String format) {
-        TableColumn<Row, Number> col = new TableColumn<>(title);
-        col.setCellValueFactory(d ->
-                new ReadOnlyObjectWrapper<>(extractor.applyAsDouble(d.getValue())));
-        col.setCellFactory(c -> new TableCell<>() {
-            @Override
-            protected void updateItem(Number value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty || value == null ? null : String.format(format, value.doubleValue()));
-            }
-        });
-        return col;
-    }
-
-    /** Recomputes all rows for the given setups and monster. */
-    public void refresh(List<PlayerSetup> setups, Monster monster) {
-        rows.clear();
-        notesLabel.setText("");
-        if (monster == null || setups.isEmpty()) {
+        if (monsters.isEmpty() || setups.isEmpty()) {
+            table.getColumns().setAll(columns);
             return;
         }
-        List<Row> computed = new java.util.ArrayList<>();
-        double bestDps = 0;
+
+        // Compute all results and the best-per-column values first
+        List<Row> computed = new ArrayList<>();
         for (PlayerSetup setup : setups) {
-            DpsResult result = DpsCalculator.calculate(setup, monster);
-            bestDps = Math.max(bestDps, result.dps());
-            computed.add(new Row(setup, result, result.ttkSeconds(), false));
+            Map<Monster, DpsResult> results = new IdentityHashMap<>();
+            double totalTtk = 0;
+            for (Monster monster : monsters) {
+                DpsResult result = DpsCalculator.calculate(setup, monster);
+                results.put(monster, result);
+                totalTtk += result.ttkSeconds();
+                bestDps.merge(monster, result.dps(), Math::max);
+            }
+            bestTotalTtk = Math.min(bestTotalTtk, totalTtk);
+            computed.add(new Row(setup, results, totalTtk));
         }
-        final double best = bestDps;
-        computed.sort((a, b) -> Double.compare(b.result().dps(), a.result().dps()));
-        for (int i = 0; i < computed.size(); i++) {
-            Row r = computed.get(i);
-            computed.set(i, new Row(r.setup(), r.result(), r.ttkSeconds(),
-                    best > 0 && r.result().dps() == best));
+
+        for (Monster monster : monsters) {
+            TableColumn<Row, DpsResult> col = new TableColumn<>(columnTitle(monster));
+            col.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().results().get(monster)));
+            col.setPrefWidth(Math.max(90, columnTitle(monster).length() * 7.5));
+            col.setCellFactory(c -> new TableCell<>() {
+                @Override
+                protected void updateItem(DpsResult result, boolean empty) {
+                    super.updateItem(result, empty);
+                    if (empty || result == null) {
+                        setText(null);
+                        setTooltip(null);
+                        setStyle("");
+                        return;
+                    }
+                    setText(result.dps() <= 0 ? "-" : String.format("%.2f", result.dps()));
+                    setTooltip(new Tooltip(String.format(
+                            "Max hit %d | Accuracy %.1f%% | Avg %.2f/attack | TTK %s",
+                            result.maxHit(), result.accuracy() * 100,
+                            result.avgDamagePerAttack(), formatSeconds(result.ttkSeconds()))));
+                    Double best = bestDps.get(monster);
+                    boolean isBest = best != null && best > 0 && result.dps() >= best - 1e-9;
+                    setStyle(isBest ? "-fx-background-color: rgba(46,160,67,0.30);"
+                                    : "");
+                }
+            });
+            columnMonsters.put(col, monster);
+            columns.add(col);
         }
+
+        if (monsters.size() > 1) {
+            TableColumn<Row, Number> totalCol = new TableColumn<>("Total TTK");
+            totalCol.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().totalTtk()));
+            totalCol.setPrefWidth(90);
+            totalCol.setCellFactory(c -> new TableCell<>() {
+                @Override
+                protected void updateItem(Number value, boolean empty) {
+                    super.updateItem(value, empty);
+                    if (empty || value == null) {
+                        setText(null);
+                        setStyle("");
+                        return;
+                    }
+                    double ttk = value.doubleValue();
+                    setText(formatSeconds(ttk));
+                    boolean isBest = Double.isFinite(bestTotalTtk) && ttk <= bestTotalTtk + 1e-9;
+                    setStyle(isBest ? "-fx-background-color: rgba(46,160,67,0.30);" : "");
+                }
+            });
+            columns.add(totalCol);
+        }
+
+        table.getColumns().setAll(columns);
         rows.setAll(computed);
+    }
+
+    private static String columnTitle(Monster monster) {
+        String name = monster.displayName();
+        return name.length() > 24 ? name.substring(0, 22) + "..." : name;
+    }
+
+    private static String formatSeconds(double seconds) {
+        if (!Double.isFinite(seconds)) {
+            return "∞";
+        }
+        if (seconds >= 120) {
+            return String.format("%dm %02ds", (int) (seconds / 60), (int) (seconds % 60));
+        }
+        return String.format("%.1fs", seconds);
+    }
+
+    /** Shows the applied special effects for the selected setup/monster cell. */
+    private void updateDetail() {
+        detailLabel.setText("");
+        var cells = table.getSelectionModel().getSelectedCells();
+        if (cells.isEmpty()) {
+            return;
+        }
+        TablePosition<?, ?> pos = cells.get(0);
+        if (pos.getRow() < 0 || pos.getRow() >= rows.size()) {
+            return;
+        }
+        Row row = rows.get(pos.getRow());
+        Monster monster = columnMonsters.get(pos.getTableColumn());
+        if (monster == null) {
+            return;
+        }
+        DpsResult result = row.results().get(monster);
+        if (result == null) {
+            return;
+        }
+        StringBuilder text = new StringBuilder();
+        text.append(row.setup().getName()).append(" vs ").append(monster.displayName())
+                .append(": max hit ").append(result.maxHit())
+                .append(", accuracy ").append(String.format("%.1f%%", result.accuracy() * 100))
+                .append(", TTK ").append(formatSeconds(result.ttkSeconds()));
+        if (!result.notes().isEmpty()) {
+            text.append("  |  ").append(String.join("; ", result.notes()));
+        }
+        detailLabel.setText(text.toString());
     }
 }
