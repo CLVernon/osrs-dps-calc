@@ -16,6 +16,30 @@ final class Downloads {
     private Downloads() {
     }
 
+    /** Fetches a URL as a string; returns null on any failure (never throws). */
+    static String fetchString(String url, int timeoutMillis) {
+        try {
+            HttpURLConnection connection =
+                    (HttpURLConnection) URI.create(url).toURL().openConnection();
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(timeoutMillis);
+            connection.setInstanceFollowRedirects(true);
+            connection.setRequestProperty("User-Agent", "osrs-dps-calc-desktop (personal project)");
+            try {
+                if (connection.getResponseCode() != 200) {
+                    return null;
+                }
+                try (InputStream in = connection.getInputStream()) {
+                    return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                }
+            } finally {
+                connection.disconnect();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /** Downloads a URL to a file; returns false on any failure (never throws). */
     static boolean fetchToFile(String url, Path target, int timeoutMillis) {
         try {

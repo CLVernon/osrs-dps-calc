@@ -18,14 +18,6 @@ import java.util.Map;
 public class PlayerPresetDto {
 
     public String name;
-    public int attackLevel;
-    public int strengthLevel;
-    public int defenceLevel;
-    public int rangedLevel;
-    public int magicLevel;
-    public int hitpointsLevel;
-    public int currentHitpoints;
-    public int miningLevel = 99;
     public Map<String, String> equipment = new HashMap<>();
     public String attackType;
     public String stance;
@@ -44,17 +36,9 @@ public class PlayerPresetDto {
     public static PlayerPresetDto from(PlayerSetup setup) {
         PlayerPresetDto dto = new PlayerPresetDto();
         dto.name = setup.getName();
-        dto.attackLevel = setup.getAttackLevel();
-        dto.strengthLevel = setup.getStrengthLevel();
-        dto.defenceLevel = setup.getDefenceLevel();
-        dto.rangedLevel = setup.getRangedLevel();
-        dto.magicLevel = setup.getMagicLevel();
-        dto.hitpointsLevel = setup.getHitpointsLevel();
         for (Map.Entry<EquipmentSlot, EquipmentItem> e : setup.getEquipment().entrySet()) {
             dto.equipment.put(e.getKey().jsonName(), e.getValue().displayName());
         }
-        dto.currentHitpoints = setup.getCurrentHitpoints();
-        dto.miningLevel = setup.getMiningLevel();
         dto.attackType = setup.getAttackType().name();
         dto.stance = setup.getStance().name();
         dto.prayer = setup.getPrayer().name();
@@ -73,12 +57,6 @@ public class PlayerPresetDto {
 
     public PlayerSetup toSetup(DataRepository data) {
         PlayerSetup setup = new PlayerSetup(name == null ? "Unnamed" : name);
-        setup.setAttackLevel(attackLevel);
-        setup.setStrengthLevel(strengthLevel);
-        setup.setDefenceLevel(defenceLevel);
-        setup.setRangedLevel(rangedLevel);
-        setup.setMagicLevel(magicLevel);
-        setup.setHitpointsLevel(hitpointsLevel);
         if (equipment != null) {
             for (Map.Entry<String, String> e : equipment.entrySet()) {
                 EquipmentSlot slot = EquipmentSlot.fromJsonName(e.getKey());
@@ -88,8 +66,6 @@ public class PlayerPresetDto {
                 }
             }
         }
-        setup.setCurrentHitpoints(currentHitpoints);
-        setup.setMiningLevel(miningLevel);
         setup.setAttackType(parse(AttackType.class, attackType, AttackType.SLASH));
         setup.setStance(parse(Stance.class, stance, Stance.ACCURATE));
         setup.setPrayer(parse(Prayer.class, prayer, Prayer.NONE));

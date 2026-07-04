@@ -31,7 +31,6 @@ import javafx.scene.layout.VBox;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.IntConsumer;
 
 /** Editor form for a single player setup. Mutates the setup and notifies on change. */
 public class PlayerSetupPane extends VBox {
@@ -43,14 +42,6 @@ public class PlayerSetupPane extends VBox {
     private boolean updating;
 
     private final TextField nameField = new TextField();
-    private final Spinner<Integer> attack = levelSpinner();
-    private final Spinner<Integer> strength = levelSpinner();
-    private final Spinner<Integer> defence = levelSpinner();
-    private final Spinner<Integer> ranged = levelSpinner();
-    private final Spinner<Integer> magic = levelSpinner();
-    private final Spinner<Integer> hitpoints = levelSpinner();
-    private final Spinner<Integer> currentHp = levelSpinner();
-    private final Spinner<Integer> mining = levelSpinner();
     private final ComboBox<AttackType> attackType = new ComboBox<>();
     private final ComboBox<Stance> stance = new ComboBox<>();
     private final ComboBox<Prayer> prayer = new ComboBox<>();
@@ -128,23 +119,6 @@ public class PlayerSetupPane extends VBox {
             }
         });
 
-        wireLevel(attack, v -> setup.setAttackLevel(v));
-        wireLevel(strength, v -> setup.setStrengthLevel(v));
-        wireLevel(defence, v -> setup.setDefenceLevel(v));
-        wireLevel(ranged, v -> setup.setRangedLevel(v));
-        wireLevel(magic, v -> setup.setMagicLevel(v));
-        wireLevel(hitpoints, v -> setup.setHitpointsLevel(v));
-        wireLevel(currentHp, v -> setup.setCurrentHitpoints(v));
-        wireLevel(mining, v -> setup.setMiningLevel(v));
-
-        GridPane levels = grid();
-        levels.addRow(0, new Label("Attack"), attack, new Label("Strength"), strength,
-                new Label("Defence"), defence);
-        levels.addRow(1, new Label("Ranged"), ranged, new Label("Magic"), magic,
-                new Label("Hitpoints"), hitpoints);
-        levels.addRow(2, new Label("Current HP"), currentHp, new Label("Mining"), mining,
-                new Label(""), new Label(""));
-
         GridPane combat = grid();
         combat.addRow(0, new Label("Attack type"), attackType, new Label("Stance"), stance);
         combat.addRow(1, new Label("Prayer"), prayer, new Label("Potion"), potion);
@@ -188,7 +162,6 @@ public class PlayerSetupPane extends VBox {
 
         getChildren().addAll(
                 labeledRow("Name", nameField),
-                section("Levels"), levels,
                 section("Combat"), combat,
                 section("Buffs"), buffs,
                 section("Equipment"), gear,
@@ -215,22 +188,6 @@ public class PlayerSetupPane extends VBox {
         box.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(node, Priority.ALWAYS);
         return box;
-    }
-
-    private static Spinner<Integer> levelSpinner() {
-        Spinner<Integer> s = new Spinner<>(1, 120, 99);
-        s.setEditable(true);
-        s.setPrefWidth(76);
-        return s;
-    }
-
-    private void wireLevel(Spinner<Integer> spinner, IntConsumer apply) {
-        spinner.valueProperty().addListener((o, old, v) -> {
-            if (!updating && setup != null && v != null) {
-                apply.accept(v);
-                changed();
-            }
-        });
     }
 
     private <T> void wireCombo(ComboBox<T> combo, java.util.function.Consumer<T> apply) {
@@ -285,14 +242,6 @@ public class PlayerSetupPane extends VBox {
         updating = true;
         try {
             nameField.setText(setup.getName());
-            attack.getValueFactory().setValue(setup.getAttackLevel());
-            strength.getValueFactory().setValue(setup.getStrengthLevel());
-            defence.getValueFactory().setValue(setup.getDefenceLevel());
-            ranged.getValueFactory().setValue(setup.getRangedLevel());
-            magic.getValueFactory().setValue(setup.getMagicLevel());
-            hitpoints.getValueFactory().setValue(setup.getHitpointsLevel());
-            currentHp.getValueFactory().setValue(setup.getCurrentHitpoints());
-            mining.getValueFactory().setValue(setup.getMiningLevel());
             attackType.setValue(setup.getAttackType());
             refreshStyleDependentControls();
             stance.setValue(setup.getStance());

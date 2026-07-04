@@ -3,20 +3,17 @@ package com.osrs.dps.model;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** A complete player loadout: stats, gear, style, prayers, potions and situational flags. */
+/**
+ * A gear loadout: equipment, style, prayers, potions and situational flags.
+ * Stats come from the shared {@link PlayerCharacter} - all setups compare
+ * gear for the same character.
+ */
 public class PlayerSetup {
 
     private String name = "New setup";
 
-    private int attackLevel = 99;
-    private int strengthLevel = 99;
-    private int defenceLevel = 99;
-    private int rangedLevel = 99;
-    private int magicLevel = 99;
-    private int hitpointsLevel = 99;
-    /** Current HP, for Dharok's set effect; 0 means "at full health". */
-    private int currentHitpoints;
-    private int miningLevel = 99;
+    /** The character whose stats this loadout uses; shared between setups. */
+    private PlayerCharacter character = new PlayerCharacter();
 
     private final Map<EquipmentSlot, EquipmentItem> equipment = new EnumMap<>(EquipmentSlot.class);
 
@@ -43,14 +40,7 @@ public class PlayerSetup {
 
     public PlayerSetup copy() {
         PlayerSetup c = new PlayerSetup(name + " (copy)");
-        c.attackLevel = attackLevel;
-        c.strengthLevel = strengthLevel;
-        c.defenceLevel = defenceLevel;
-        c.rangedLevel = rangedLevel;
-        c.magicLevel = magicLevel;
-        c.hitpointsLevel = hitpointsLevel;
-        c.currentHitpoints = currentHitpoints;
-        c.miningLevel = miningLevel;
+        c.character = character; // same character, different gear
         c.equipment.putAll(equipment);
         c.attackType = attackType;
         c.stance = stance;
@@ -155,19 +145,19 @@ public class PlayerSetup {
     // --- Boosted (visible) levels ---
 
     public int visibleAttack() {
-        return attackLevel + potion.attackBoost(attackLevel);
+        return character.attack + potion.attackBoost(character.attack);
     }
 
     public int visibleStrength() {
-        return strengthLevel + potion.strengthBoost(strengthLevel);
+        return character.strength + potion.strengthBoost(character.strength);
     }
 
     public int visibleRanged() {
-        return rangedLevel + potion.rangedBoost(rangedLevel);
+        return character.ranged + potion.rangedBoost(character.ranged);
     }
 
     public int visibleMagic() {
-        return magicLevel + potion.magicBoost(magicLevel);
+        return character.magic + potion.magicBoost(character.magic);
     }
 
     // --- Getters / setters ---
@@ -180,52 +170,60 @@ public class PlayerSetup {
         this.name = name;
     }
 
+    public PlayerCharacter getCharacter() {
+        return character;
+    }
+
+    public void setCharacter(PlayerCharacter character) {
+        this.character = character != null ? character : new PlayerCharacter();
+    }
+
     public int getAttackLevel() {
-        return attackLevel;
+        return character.attack;
     }
 
     public void setAttackLevel(int attackLevel) {
-        this.attackLevel = attackLevel;
+        character.attack = attackLevel;
     }
 
     public int getStrengthLevel() {
-        return strengthLevel;
+        return character.strength;
     }
 
     public void setStrengthLevel(int strengthLevel) {
-        this.strengthLevel = strengthLevel;
+        character.strength = strengthLevel;
     }
 
     public int getDefenceLevel() {
-        return defenceLevel;
+        return character.defence;
     }
 
     public void setDefenceLevel(int defenceLevel) {
-        this.defenceLevel = defenceLevel;
+        character.defence = defenceLevel;
     }
 
     public int getRangedLevel() {
-        return rangedLevel;
+        return character.ranged;
     }
 
     public void setRangedLevel(int rangedLevel) {
-        this.rangedLevel = rangedLevel;
+        character.ranged = rangedLevel;
     }
 
     public int getMagicLevel() {
-        return magicLevel;
+        return character.magic;
     }
 
     public void setMagicLevel(int magicLevel) {
-        this.magicLevel = magicLevel;
+        character.magic = magicLevel;
     }
 
     public int getHitpointsLevel() {
-        return hitpointsLevel;
+        return character.hitpoints;
     }
 
     public void setHitpointsLevel(int hitpointsLevel) {
-        this.hitpointsLevel = hitpointsLevel;
+        character.hitpoints = hitpointsLevel;
     }
 
     public AttackType getAttackType() {
@@ -270,19 +268,19 @@ public class PlayerSetup {
 
     /** Current HP for Dharok's; defaults to full health when unset. */
     public int getCurrentHitpoints() {
-        return currentHitpoints > 0 ? Math.min(currentHitpoints, hitpointsLevel) : hitpointsLevel;
+        return character.effectiveCurrentHitpoints();
     }
 
     public void setCurrentHitpoints(int currentHitpoints) {
-        this.currentHitpoints = currentHitpoints;
+        character.currentHitpoints = currentHitpoints;
     }
 
     public int getMiningLevel() {
-        return miningLevel;
+        return character.mining;
     }
 
     public void setMiningLevel(int miningLevel) {
-        this.miningLevel = miningLevel;
+        character.mining = miningLevel;
     }
 
     public boolean isInWilderness() {

@@ -72,6 +72,34 @@ class PresetManagerTest {
     }
 
     @Test
+    void characterRoundTrip() {
+        PresetManager manager = new PresetManager(tempDir);
+        com.osrs.dps.model.PlayerCharacter character = new com.osrs.dps.model.PlayerCharacter();
+        character.name = "Test Char";
+        character.attack = 75;
+        character.magic = 94;
+        character.currentHitpoints = 50;
+        manager.saveCharacter(character);
+
+        com.osrs.dps.model.PlayerCharacter loaded = manager.loadCharacter();
+        assertEquals("Test Char", loaded.name);
+        assertEquals(75, loaded.attack);
+        assertEquals(94, loaded.magic);
+        assertEquals(50, loaded.currentHitpoints);
+    }
+
+    @Test
+    void sharedCharacterAffectsAllSetups() {
+        com.osrs.dps.model.PlayerCharacter character = new com.osrs.dps.model.PlayerCharacter();
+        PlayerSetup a = new PlayerSetup("A");
+        a.setCharacter(character);
+        PlayerSetup b = a.copy();
+        character.strength = 80;
+        assertEquals(80, a.getStrengthLevel());
+        assertEquals(80, b.getStrengthLevel(), "copies share the same character");
+    }
+
+    @Test
     void deleteRemovesPreset() throws IOException {
         DataRepository data = DataRepository.get();
         PresetManager manager = new PresetManager(tempDir);

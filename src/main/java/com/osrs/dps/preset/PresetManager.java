@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.osrs.dps.data.DataRepository;
 import com.osrs.dps.model.Monster;
+import com.osrs.dps.model.PlayerCharacter;
 import com.osrs.dps.model.PlayerSetup;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class PresetManager {
             .enable(SerializationFeature.INDENT_OUTPUT);
     private final Path playerDir;
     private final Path monsterDir;
+    private final Path characterFile;
 
     public PresetManager() {
         this(defaultBaseDir());
@@ -32,12 +34,36 @@ public class PresetManager {
     public PresetManager(Path baseDir) {
         this.playerDir = baseDir.resolve("presets").resolve("players");
         this.monsterDir = baseDir.resolve("presets").resolve("monsters");
+        this.characterFile = baseDir.resolve("character.json");
         try {
             Files.createDirectories(playerDir);
             Files.createDirectories(monsterDir);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not create preset directories", e);
         }
+    }
+
+    // --- Character ---
+
+    /** Saves the shared character; failures are logged, never thrown. */
+    public void saveCharacter(PlayerCharacter character) {
+        try {
+            mapper.writeValue(characterFile.toFile(), character);
+        } catch (IOException e) {
+            System.err.println("Could not save character: " + e.getMessage());
+        }
+    }
+
+    /** Loads the saved character, or a fresh maxed character if none exists. */
+    public PlayerCharacter loadCharacter() {
+        if (Files.isRegularFile(characterFile)) {
+            try {
+                return mapper.readValue(characterFile.toFile(), PlayerCharacter.class);
+            } catch (IOException e) {
+                System.err.println("Could not load character: " + e.getMessage());
+            }
+        }
+        return new PlayerCharacter();
     }
 
     private static Path defaultBaseDir() {

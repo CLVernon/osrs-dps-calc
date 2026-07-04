@@ -5,8 +5,10 @@ import com.osrs.dps.data.DataRepository;
 import com.osrs.dps.data.DataUpdater;
 import com.osrs.dps.data.ImageCache;
 import com.osrs.dps.model.Monster;
+import com.osrs.dps.model.PlayerCharacter;
 import com.osrs.dps.model.PlayerSetup;
 import com.osrs.dps.preset.PresetManager;
+import com.osrs.dps.ui.CharacterPane;
 import com.osrs.dps.ui.ComparisonPane;
 import com.osrs.dps.ui.MonsterEditorDialog;
 import com.osrs.dps.ui.PlayerSetupPane;
@@ -48,6 +50,8 @@ public class App extends Application {
     private final ListView<PlayerSetup> setupList = new ListView<>(setups);
     private PlayerSetupPane editorPane;
     private ComparisonPane comparisonPane;
+    private CharacterPane characterPane;
+    private PlayerCharacter character = new PlayerCharacter();
 
     private Monster selectedMonster;
     private final Button monsterButton = new Button("Choose monster...");
@@ -97,12 +101,16 @@ public class App extends Application {
     private void buildMainUi(Stage stage) {
         comparisonPane = new ComparisonPane();
         editorPane = new PlayerSetupPane(this::refreshComparison);
+        character = presets.loadCharacter();
+        characterPane = new CharacterPane(this::characterChanged);
+        characterPane.setCharacter(character);
 
         selectedMonster = data.findMonster("Zulrah (Serpentine)");
         if (selectedMonster == null && !data.allMonsters().isEmpty()) {
             selectedMonster = data.allMonsters().get(0);
         }
         PlayerSetup first = new PlayerSetup("Setup 1");
+        first.setCharacter(character);
         setups.add(first);
 
         BorderPane root = new BorderPane();
@@ -213,6 +221,7 @@ public class App extends Application {
         Button add = new Button("Add");
         add.setOnAction(e -> {
             PlayerSetup s = new PlayerSetup("Setup " + (setups.size() + 1));
+            s.setCharacter(character);
             setups.add(s);
             setupList.getSelectionModel().select(s);
             refreshComparison();
@@ -242,9 +251,9 @@ public class App extends Application {
 
         HBox row1 = new HBox(6, add, duplicate, remove);
         HBox row2 = new HBox(6, save, load);
-        Label header = new Label("Player setups");
+        Label header = new Label("Gear setups");
         header.getStyleClass().add("title-4");
-        VBox box = new VBox(8, header, setupList, row1, row2);
+        VBox box = new VBox(8, characterPane, new Separator(), header, setupList, row1, row2);
         box.setPadding(new Insets(10));
         VBox.setVgrow(setupList, Priority.ALWAYS);
         return box;
@@ -276,9 +285,10 @@ public class App extends Application {
             return;
         }
         SearchPickerDialog<PlayerSetup> picker = new SearchPickerDialog<>(
-                "Load player preset", available, PlayerSetup::getName);
+                "Load gear preset", available, PlayerSetup::getName);
         PlayerSetup chosen = picker.showAndPick();
         if (chosen != null) {
+            chosen.setCharacter(character);
             setups.add(chosen);
             setupList.getSelectionModel().select(chosen);
             refreshComparison();
@@ -286,6 +296,12 @@ public class App extends Application {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /** Character stats changed: persist and recalculate everything. */
+    private void characterChanged() {
+        presets.saveCharacter(character);
+        refreshComparison();
+    }
 
     private void refreshComparison() {
         setupList.refresh();
