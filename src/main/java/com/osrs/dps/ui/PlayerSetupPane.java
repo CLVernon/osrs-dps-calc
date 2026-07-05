@@ -20,7 +20,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -67,7 +66,7 @@ public class PlayerSetupPane extends VBox {
     private final Spinner<Integer> chinDistance = new Spinner<>(1, 10, 5);
     private final Map<EquipmentSlot, Button> slotButtons = new EnumMap<>(EquipmentSlot.class);
     private final Map<EquipmentSlot, ImageView> slotIcons = new EnumMap<>(EquipmentSlot.class);
-    private final Label bonusSummary = new Label();
+    private final GridPane bonusGrid = new GridPane();
 
     private static final Map<EquipmentSlot, String> SLOT_PLACEHOLDERS = new EnumMap<>(Map.of(
             EquipmentSlot.HEAD, "Head slot.png",
@@ -151,26 +150,37 @@ public class PlayerSetupPane extends VBox {
         potion.setMaxWidth(Double.MAX_VALUE);
 
         GridPane combat = grid();
-        combat.addRow(0, new Label("Attack type"), attackType, new Label("Stance"), stance);
-        combat.addRow(1, new Label("Prayer"), prayer, new Label("Potion"), potion);
+        combat.addRow(0, fixedLabel("Attack type"), attackType, fixedLabel("Stance"), stance);
+        combat.addRow(1, fixedLabel("Prayer"), prayer, fixedLabel("Potion"), potion);
         HBox spellRow = new HBox(4, spellDropdown, clearSpell);
         HBox.setHgrow(spellDropdown, Priority.ALWAYS);
-        combat.addRow(2, new Label("Spell"), spellRow, new Label("Chin distance"), chinDistance);
+        combat.addRow(2, fixedLabel("Spell"), spellRow, fixedLabel("Chin distance"), chinDistance);
         javafx.scene.layout.ColumnConstraints labelCol1 = new javafx.scene.layout.ColumnConstraints();
+        labelCol1.setMinWidth(80);
         javafx.scene.layout.ColumnConstraints fieldCol1 = new javafx.scene.layout.ColumnConstraints();
         fieldCol1.setHgrow(Priority.ALWAYS);
         fieldCol1.setFillWidth(true);
+        fieldCol1.setPercentWidth(30);
         javafx.scene.layout.ColumnConstraints labelCol2 = new javafx.scene.layout.ColumnConstraints();
+        labelCol2.setMinWidth(90);
         javafx.scene.layout.ColumnConstraints fieldCol2 = new javafx.scene.layout.ColumnConstraints();
         fieldCol2.setHgrow(Priority.ALWAYS);
         fieldCol2.setFillWidth(true);
+        fieldCol2.setPercentWidth(30);
         combat.getColumnConstraints().addAll(labelCol1, fieldCol1, labelCol2, fieldCol2);
 
-        FlowPane buffs = new FlowPane(14, 8, slayerTask, wilderness, forinthry,
-                markOfDarkness, charge, kandarin, sunfire);
-
-        bonusSummary.setWrapText(true);
-        bonusSummary.getStyleClass().add("text-subtle");
+        // Aligned two-column buff grid
+        GridPane buffs = new GridPane();
+        buffs.setHgap(20);
+        buffs.setVgap(8);
+        CheckBox[] buffBoxes = {slayerTask, wilderness, forinthry, markOfDarkness,
+                charge, kandarin, sunfire};
+        for (int i = 0; i < buffBoxes.length; i++) {
+            buffs.add(buffBoxes[i], i % 2, i / 2);
+        }
+        javafx.scene.layout.ColumnConstraints buffCol = new javafx.scene.layout.ColumnConstraints();
+        buffCol.setMinWidth(170);
+        buffs.getColumnConstraints().addAll(buffCol, new javafx.scene.layout.ColumnConstraints());
 
         // Two-column layout: equipment slots on the left, combat + buffs on the right
         VBox equipmentColumn = new VBox(8, section("Equipment"), buildEquipmentGrid());
@@ -183,7 +193,13 @@ public class PlayerSetupPane extends VBox {
         getChildren().addAll(
                 labeledRow("Name", nameField),
                 main,
-                bonusSummary);
+                section("Bonuses"), bonusGrid);
+    }
+
+    private static Label fixedLabel(String text) {
+        Label label = new Label(text);
+        label.setMinWidth(Label.USE_PREF_SIZE);
+        return label;
     }
 
     // ------------------------------------------------- OSRS-style slot layout
@@ -405,22 +421,33 @@ public class PlayerSetupPane extends VBox {
     }
 
     private void refreshSummary() {
+        bonusGrid.getChildren().clear();
+        bonusGrid.setHgap(18);
+        bonusGrid.setVgap(4);
         if (setup == null) {
-            bonusSummary.setText("");
             return;
         }
-        bonusSummary.setText(String.format(
-                "Bonuses - Stab %d | Slash %d | Crush %d | Ranged %d | Magic %d || "
-                        + "Melee str %d | Ranged str %d | Magic dmg %.1f%% || Speed %d ticks",
-                setup.attackBonus(AttackType.STAB),
-                setup.attackBonus(AttackType.SLASH),
-                setup.attackBonus(AttackType.CRUSH),
-                setup.attackBonus(AttackType.RANGED),
-                setup.attackBonus(AttackType.MAGIC),
-                setup.meleeStrengthBonus(),
-                setup.rangedStrengthBonus(),
-                setup.magicDamageBonusTenths() / 10.0,
-                setup.attackSpeedTicks()));
+        String[] styles = {"Stab", "Slash", "Crush", "Magic", "Ranged"};
+        AttackType[] types = {AttackType.STAB, AttackType.SLASH, AttackType.CRUSH,
+                AttackType.MAGIC, AttackType.RANGED};
+        for (int i = 0; i < styles.length; i++) {
+            Label header = StatTooltips.sectionLabel(styles[i]);
+            javafx.scene.layout.GridPane.setHalignment(header, javafx.geometry.HPos.RIGHT);
+            bonusGrid.add(header, i + 1, 0);
+            bonusGrid.add(StatTooltips.valueLabel(setup.attackBonus(types[i])), i + 1, 1);
+        }
+        bonusGrid.add(StatTooltips.sectionLabel("Attack"), 0, 1);
+
+        bonusGrid.add(StatTooltips.sectionLabel("Melee str"), 6, 0);
+        bonusGrid.add(StatTooltips.valueLabel(setup.meleeStrengthBonus()), 7, 0);
+        bonusGrid.add(StatTooltips.sectionLabel("Ranged str"), 8, 0);
+        bonusGrid.add(StatTooltips.valueLabel(setup.rangedStrengthBonus()), 9, 0);
+        bonusGrid.add(StatTooltips.sectionLabel("Magic dmg"), 6, 1);
+        bonusGrid.add(StatTooltips.percentLabel(setup.magicDamageBonusTenths() / 10.0), 7, 1);
+        bonusGrid.add(StatTooltips.sectionLabel("Speed"), 8, 1);
+        int ticks = setup.attackSpeedTicks();
+        Label speed = new Label(ticks + " ticks (" + String.format("%.1fs", ticks * 0.6) + ")");
+        bonusGrid.add(speed, 9, 1);
     }
 
     private void changed() {

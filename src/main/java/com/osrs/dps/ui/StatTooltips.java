@@ -172,7 +172,7 @@ public final class StatTooltips {
         return grid;
     }
 
-    private static Label sectionLabel(String text) {
+    static Label sectionLabel(String text) {
         Label label = new Label(text);
         label.setStyle(SECTION_STYLE);
         return label;
@@ -182,14 +182,14 @@ public final class StatTooltips {
         return new Label(text);
     }
 
-    private static Label valueLabel(int value) {
+    static Label valueLabel(int value) {
         Label label = new Label((value > 0 ? "+" : "") + value);
         label.setStyle(value > 0 ? POSITIVE : value < 0 ? NEGATIVE : ZERO);
         GridPane.setHalignment(label, HPos.RIGHT);
         return label;
     }
 
-    private static Label percentLabel(double percent) {
+    static Label percentLabel(double percent) {
         String text = (percent > 0 ? "+" : "") + (percent == Math.rint(percent)
                 ? String.valueOf((int) percent) : String.valueOf(percent)) + "%";
         Label label = new Label(text);
