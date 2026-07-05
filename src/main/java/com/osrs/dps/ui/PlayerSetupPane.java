@@ -26,7 +26,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -40,8 +39,7 @@ public class PlayerSetupPane extends VBox {
     private boolean updating;
 
     private final TextField nameField = new TextField();
-    private final ComboBox<AttackType> attackType = new ComboBox<>();
-    private final ComboBox<Stance> stance = new ComboBox<>();
+    private final ComboBox<com.osrs.dps.model.CombatStyle> styleCombo = new ComboBox<>();
     private final ComboBox<Prayer> prayer = new ComboBox<>();
     private final ComboBox<Potion> potion = new ComboBox<>();
     private final SearchableDropdown<SpellData> spellDropdown = new SearchableDropdown<>(
@@ -96,18 +94,16 @@ public class PlayerSetupPane extends VBox {
             }
         });
 
-        attackType.getItems().addAll(AttackType.values());
-        IconCombo.decorate(attackType, AttackType::imageName);
-        attackType.valueProperty().addListener((o, old, type) -> {
-            if (!updating && setup != null && type != null) {
-                setup.setAttackType(type);
+        IconCombo.decorate(styleCombo, s -> s.type().imageName());
+        styleCombo.valueProperty().addListener((o, old, style) -> {
+            if (!updating && setup != null && style != null) {
+                setup.setCombatStyle(style);
                 refreshStyleDependentControls();
                 changed();
             }
         });
         IconCombo.decorate(prayer, Prayer::imageName);
         IconCombo.decorate(potion, Potion::imageName);
-        wireCombo(stance, v -> setup.setStance(v));
         wireCombo(prayer, v -> setup.setPrayer(v));
         wireCombo(potion, v -> setup.setPotion(v));
 
@@ -144,13 +140,14 @@ public class PlayerSetupPane extends VBox {
             }
         });
 
-        attackType.setMaxWidth(Double.MAX_VALUE);
-        stance.setMaxWidth(Double.MAX_VALUE);
+        styleCombo.setMaxWidth(Double.MAX_VALUE);
         prayer.setMaxWidth(Double.MAX_VALUE);
         potion.setMaxWidth(Double.MAX_VALUE);
 
         GridPane combat = grid();
-        combat.addRow(0, fixedLabel("Attack type"), attackType, fixedLabel("Stance"), stance);
+        combat.add(fixedLabel("Combat style"), 0, 0);
+        combat.add(styleCombo, 1, 0);
+        GridPane.setColumnSpan(styleCombo, 3);
         combat.addRow(1, fixedLabel("Prayer"), prayer, fixedLabel("Potion"), potion);
         HBox spellRow = new HBox(4, spellDropdown, clearSpell);
         HBox.setHgrow(spellDropdown, Priority.ALWAYS);
@@ -357,9 +354,8 @@ public class PlayerSetupPane extends VBox {
         updating = true;
         try {
             nameField.setText(setup.getName());
-            attackType.setValue(setup.getAttackType());
+            refreshStyles();
             refreshStyleDependentControls();
-            stance.setValue(setup.getStance());
             prayer.setValue(setup.getPrayer());
             potion.setValue(setup.getPotion());
             slayerTask.setSelected(setup.isOnSlayerTask());
@@ -378,20 +374,41 @@ public class PlayerSetupPane extends VBox {
         }
     }
 
-    /** Repopulates stance/prayer/potion options for the current attack type. */
+    /** Repopulates the style combo from the equipped weapon's category. */
+    private void refreshStyles() {
+        java.util.List<com.osrs.dps.model.CombatStyle> styles =
+                com.osrs.dps.model.WeaponStyles.forWeapon(setup.getWeapon());
+        com.osrs.dps.model.CombatStyle current = null;
+        for (com.osrs.dps.model.CombatStyle style : styles) {
+            if (style.name().equals(setup.getStyleName())
+                    && style.type() == setup.getAttackType()
+                    && style.stance() == setup.getStance()) {
+                current = style;
+                break;
+            }
+        }
+        if (current == null) {
+            // weapon changed: keep the same attack type if the new weapon offers it
+            current = styles.stream()
+                    .filter(s -> s.type() == setup.getAttackType()
+                            && s.stance() != Stance.MANUAL_CAST)
+                    .findFirst()
+                    .orElse(styles.get(0));
+            setup.setCombatStyle(current);
+        }
+        boolean wasUpdating = updating;
+        updating = true;
+        try {
+            styleCombo.getItems().setAll(styles);
+            styleCombo.setValue(current);
+        } finally {
+            updating = wasUpdating;
+        }
+    }
+
+    /** Repopulates prayer/potion options for the current attack type. */
     private void refreshStyleDependentControls() {
         AttackType type = setup.getAttackType();
-        Stance[] stances = switch (type) {
-            case STAB, SLASH, CRUSH -> Stance.meleeStances();
-            case RANGED -> Stance.rangedStances();
-            case MAGIC -> Stance.magicStances();
-        };
-        stance.getItems().setAll(stances);
-        if (!Arrays.asList(stances).contains(setup.getStance())) {
-            setup.setStance(stances[0]);
-        }
-        stance.setValue(setup.getStance());
-
         prayer.getItems().setAll(Prayer.forAttackType(type));
         if (!prayer.getItems().contains(setup.getPrayer())) {
             setup.setPrayer(Prayer.NONE);
@@ -451,6 +468,10 @@ public class PlayerSetupPane extends VBox {
     }
 
     private void changed() {
+        if (setup != null) {
+            refreshStyles();
+            refreshStyleDependentControls();
+        }
         refreshSummary();
         refreshAllSlots();
         refreshSpellDropdown();

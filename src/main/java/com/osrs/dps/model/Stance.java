@@ -14,7 +14,8 @@ public enum Stance {
     RAPID("Rapid"),
     LONGRANGE("Longrange"),
     AUTOCAST("Autocast"),
-    DEFENSIVE_AUTOCAST("Defensive autocast");
+    DEFENSIVE_AUTOCAST("Defensive autocast"),
+    MANUAL_CAST("Manual cast");
 
     private final String displayName;
 

@@ -21,6 +21,7 @@ public class PlayerPresetDto {
     public Map<String, String> equipment = new HashMap<>();
     public String attackType;
     public String stance;
+    public String styleName;
     public String prayer;
     public String potion;
     public String spell;
@@ -41,6 +42,7 @@ public class PlayerPresetDto {
         }
         dto.attackType = setup.getAttackType().name();
         dto.stance = setup.getStance().name();
+        dto.styleName = setup.getStyleName();
         dto.prayer = setup.getPrayer().name();
         dto.potion = setup.getPotion().name();
         dto.spell = setup.getSpell() == null ? null : setup.getSpell().name;
@@ -66,8 +68,11 @@ public class PlayerPresetDto {
                 }
             }
         }
-        setup.setAttackType(parse(AttackType.class, attackType, AttackType.SLASH));
+        setup.setAttackType(parse(AttackType.class, attackType, AttackType.CRUSH));
         setup.setStance(parse(Stance.class, stance, Stance.ACCURATE));
+        if (styleName != null) {
+            setup.setStyleName(styleName);
+        }
         setup.setPrayer(parse(Prayer.class, prayer, Prayer.NONE));
         setup.setPotion(parse(Potion.class, potion, Potion.NONE));
         setup.setSpell(spell == null ? null : data.findSpell(spell));

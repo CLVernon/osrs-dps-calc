@@ -17,8 +17,10 @@ public class PlayerSetup {
 
     private final Map<EquipmentSlot, EquipmentItem> equipment = new EnumMap<>(EquipmentSlot.class);
 
-    private AttackType attackType = AttackType.SLASH;
+    private AttackType attackType = AttackType.CRUSH;
     private Stance stance = Stance.ACCURATE;
+    /** Name of the selected weapon combat style (e.g. "Flick"). */
+    private String styleName = "Punch";
     private Prayer prayer = Prayer.NONE;
     private Potion potion = Potion.NONE;
     private SpellData spell;
@@ -44,6 +46,7 @@ public class PlayerSetup {
         c.equipment.putAll(equipment);
         c.attackType = attackType;
         c.stance = stance;
+        c.styleName = styleName;
         c.prayer = prayer;
         c.potion = potion;
         c.spell = spell;
@@ -125,7 +128,8 @@ public class PlayerSetup {
         } else if (isCastingSpell()) {
             String weaponName = weapon == null ? "" : weapon.name;
             if ("Harmonised nightmare staff".equals(weaponName)
-                    && spell != null && "standard".equals(spell.spellbook)) {
+                    && spell != null && "standard".equals(spell.spellbook)
+                    && stance != Stance.MANUAL_CAST) {
                 base = 4;
             } else if ("Twinflame staff".equals(weaponName)) {
                 base = 6;
@@ -136,10 +140,37 @@ public class PlayerSetup {
         return Math.max(1, base);
     }
 
-    /** True when attacking with an autocast spell rather than a powered staff. */
+    /** True when attacking with a cast spell (autocast or manual) rather than a powered staff. */
     public boolean isCastingSpell() {
         return attackType == AttackType.MAGIC && spell != null
-                && (stance == Stance.AUTOCAST || stance == Stance.DEFENSIVE_AUTOCAST);
+                && (stance == Stance.AUTOCAST || stance == Stance.DEFENSIVE_AUTOCAST
+                        || stance == Stance.MANUAL_CAST);
+    }
+
+    /** The currently selected weapon combat style. */
+    public CombatStyle getCombatStyle() {
+        for (CombatStyle style : WeaponStyles.forWeapon(getWeapon())) {
+            if (style.name().equals(styleName) && style.type() == attackType
+                    && style.stance() == stance) {
+                return style;
+            }
+        }
+        return new CombatStyle(styleName, attackType, stance);
+    }
+
+    /** Selects a weapon combat style, which determines attack type and stance. */
+    public void setCombatStyle(CombatStyle style) {
+        this.styleName = style.name();
+        this.attackType = style.type();
+        this.stance = style.stance();
+    }
+
+    public String getStyleName() {
+        return styleName;
+    }
+
+    public void setStyleName(String styleName) {
+        this.styleName = styleName;
     }
 
     // --- Boosted (visible) levels ---

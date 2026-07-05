@@ -34,7 +34,8 @@ final class EquipmentTotals {
             magic += item.offensive.magic;
         }
 
-        boolean manualCast = false; // manual casting is not modelled separately
+        // The shadow's bonus multiplier does not apply when manually casting a spell
+        boolean manualCast = p.getStance() == com.osrs.dps.model.Stance.MANUAL_CAST;
         if (g.tumekensShadow() && !manualCast) {
             int factor = CombatConstants.TOA_MONSTER_IDS.contains(m.id) ? 4 : 3;
             magicStrTenths = Math.min(1000, magicStrTenths * factor);
