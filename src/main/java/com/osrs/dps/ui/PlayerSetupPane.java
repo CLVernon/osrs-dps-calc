@@ -145,12 +145,26 @@ public class PlayerSetupPane extends VBox {
             }
         });
 
+        attackType.setMaxWidth(Double.MAX_VALUE);
+        stance.setMaxWidth(Double.MAX_VALUE);
+        prayer.setMaxWidth(Double.MAX_VALUE);
+        potion.setMaxWidth(Double.MAX_VALUE);
+
         GridPane combat = grid();
         combat.addRow(0, new Label("Attack type"), attackType, new Label("Stance"), stance);
         combat.addRow(1, new Label("Prayer"), prayer, new Label("Potion"), potion);
         HBox spellRow = new HBox(4, spellDropdown, clearSpell);
         HBox.setHgrow(spellDropdown, Priority.ALWAYS);
         combat.addRow(2, new Label("Spell"), spellRow, new Label("Chin distance"), chinDistance);
+        javafx.scene.layout.ColumnConstraints labelCol1 = new javafx.scene.layout.ColumnConstraints();
+        javafx.scene.layout.ColumnConstraints fieldCol1 = new javafx.scene.layout.ColumnConstraints();
+        fieldCol1.setHgrow(Priority.ALWAYS);
+        fieldCol1.setFillWidth(true);
+        javafx.scene.layout.ColumnConstraints labelCol2 = new javafx.scene.layout.ColumnConstraints();
+        javafx.scene.layout.ColumnConstraints fieldCol2 = new javafx.scene.layout.ColumnConstraints();
+        fieldCol2.setHgrow(Priority.ALWAYS);
+        fieldCol2.setFillWidth(true);
+        combat.getColumnConstraints().addAll(labelCol1, fieldCol1, labelCol2, fieldCol2);
 
         FlowPane buffs = new FlowPane(14, 8, slayerTask, wilderness, forinthry,
                 markOfDarkness, charge, kandarin, sunfire);
@@ -158,11 +172,17 @@ public class PlayerSetupPane extends VBox {
         bonusSummary.setWrapText(true);
         bonusSummary.getStyleClass().add("text-subtle");
 
+        // Two-column layout: equipment slots on the left, combat + buffs on the right
+        VBox equipmentColumn = new VBox(8, section("Equipment"), buildEquipmentGrid());
+        VBox combatColumn = new VBox(10,
+                section("Combat"), combat,
+                section("Buffs"), buffs);
+        HBox.setHgrow(combatColumn, Priority.ALWAYS);
+        HBox main = new HBox(26, equipmentColumn, combatColumn);
+
         getChildren().addAll(
                 labeledRow("Name", nameField),
-                section("Combat"), combat,
-                section("Buffs"), buffs,
-                section("Equipment"), buildEquipmentGrid(),
+                main,
                 bonusSummary);
     }
 
