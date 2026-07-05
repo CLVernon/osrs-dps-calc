@@ -399,7 +399,9 @@ public class PlayerSetupPane extends VBox {
         boolean wasUpdating = updating;
         updating = true;
         try {
-            styleCombo.getItems().setAll(styles);
+            if (!styleCombo.getItems().equals(styles)) {
+                styleCombo.getItems().setAll(styles);
+            }
             styleCombo.setValue(current);
         } finally {
             updating = wasUpdating;
@@ -409,17 +411,23 @@ public class PlayerSetupPane extends VBox {
     /** Repopulates prayer/potion options for the current attack type. */
     private void refreshStyleDependentControls() {
         AttackType type = setup.getAttackType();
-        prayer.getItems().setAll(Prayer.forAttackType(type));
-        if (!prayer.getItems().contains(setup.getPrayer())) {
+        if (!java.util.List.of(Prayer.forAttackType(type)).contains(setup.getPrayer())) {
             setup.setPrayer(Prayer.NONE);
         }
-        prayer.setValue(setup.getPrayer());
-
-        potion.getItems().setAll(Potion.forAttackType(type));
-        if (!potion.getItems().contains(setup.getPotion())) {
+        if (!java.util.List.of(Potion.forAttackType(type)).contains(setup.getPotion())) {
             setup.setPotion(Potion.NONE);
         }
-        potion.setValue(setup.getPotion());
+        // Guard combo mutations so their listeners don't re-enter changed()
+        boolean wasUpdating = updating;
+        updating = true;
+        try {
+            prayer.getItems().setAll(Prayer.forAttackType(type));
+            prayer.setValue(setup.getPrayer());
+            potion.getItems().setAll(Potion.forAttackType(type));
+            potion.setValue(setup.getPotion());
+        } finally {
+            updating = wasUpdating;
+        }
 
         boolean isMagic = type == AttackType.MAGIC;
         spellDropdown.setDisable(!isMagic);
