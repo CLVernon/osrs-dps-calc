@@ -45,6 +45,9 @@ public final class CombatConstants {
     }
 
     public static final Set<Integer> TEKTON_IDS = Set.of(7540, 7543, 7544, 7545);
+    public static final Set<Integer> SCAVENGER_BEAST_IDS = Set.of(7548, 7549);
+    public static final Set<Integer> VESPINE_SOLDIER_IDS = Set.of(7538, 7539);
+    public static final Set<Integer> DEATHLY_RANGER_IDS = Set.of(7559);
     public static final Set<Integer> GUARDIAN_IDS = Set.of(7569, 7571, 7570, 7572);
     public static final Set<Integer> OLM_HEAD_IDS = Set.of(7551, 7554);
     public static final Set<Integer> OLM_MELEE_HAND_IDS = Set.of(7552, 7555);
@@ -101,6 +104,35 @@ public final class CombatConstants {
     public static final Set<Integer> ONE_HIT_MONSTERS = Set.of(7223, 8584, 11193);
     public static final Set<Integer> GUARANTEED_ACCURACY_MONSTERS = Set.of(5916);
     public static final Set<Integer> INFINITE_HEALTH_MONSTERS = Set.of(14779);
+
+    /** CoX monsters whose Magic level counts as defensive rather than offensive for scaling. */
+    public static final Set<Integer> COX_MAGIC_IS_DEFENSIVE_IDS;
+
+    /** CoX monsters that use solo-style scaling even in groups. */
+    public static final Set<Integer> COX_SINGLES_SCALING_IDS;
+
+    public static final Set<Integer> OLM_IDS;
+
+    static {
+        java.util.HashSet<Integer> s = new java.util.HashSet<>();
+        s.addAll(DEATHLY_RANGER_IDS);
+        s.addAll(TEKTON_IDS);
+        s.addAll(ABYSSAL_PORTAL_IDS);
+        s.addAll(VESPULA_IDS);
+        s.addAll(VESPINE_SOLDIER_IDS);
+        s.addAll(OLM_MELEE_HAND_IDS);
+        s.addAll(OLM_MAGE_HAND_IDS);
+        COX_MAGIC_IS_DEFENSIVE_IDS = Set.copyOf(s);
+
+        java.util.HashSet<Integer> singles = new java.util.HashSet<>(SCAVENGER_BEAST_IDS);
+        singles.addAll(VESPINE_SOLDIER_IDS);
+        COX_SINGLES_SCALING_IDS = Set.copyOf(singles);
+
+        java.util.HashSet<Integer> olm = new java.util.HashSet<>(OLM_HEAD_IDS);
+        olm.addAll(OLM_MELEE_HAND_IDS);
+        olm.addAll(OLM_MAGE_HAND_IDS);
+        OLM_IDS = Set.copyOf(olm);
+    }
 
     public static final Set<Integer> ALWAYS_MAX_HIT_MELEE = Set.of(11710, 11713, 12814, 11755, 11758);
     public static final Set<Integer> ALWAYS_MAX_HIT_RANGED = Set.of(11711, 11714, 12815, 11717, 11715);

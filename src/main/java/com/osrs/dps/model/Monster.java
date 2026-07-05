@@ -74,6 +74,55 @@ public class Monster {
     /** ToA raid invocation level; only applies to Tombs of Amascut and custom monsters. */
     public int toaInvocationLevel;
 
+    // --- CoX raid scaling inputs (apply to Xerician monsters) ---
+    public int partySize = 1;
+    public int partyMaxCombatLevel = 126;
+    public int partyMaxHpLevel = 99;
+    public int partyAvgMiningLevel = 99;
+    public boolean coxChallengeMode;
+
+    /** Short suffix describing active raid scaling, e.g. " [5p CM]"; empty when unscaled. */
+    public String scaleSuffix() {
+        if (hasAttribute("xerician") && (partySize > 1 || coxChallengeMode)) {
+            return " [" + partySize + "p" + (coxChallengeMode ? " CM" : "") + "]";
+        }
+        if (toaInvocationLevel > 0) {
+            return " [" + toaInvocationLevel + " inv]";
+        }
+        return "";
+    }
+
+    /** Copy with independent skills, for stat scaling; other members are shared. */
+    public Monster copyWithSkills() {
+        Monster c = new Monster();
+        c.id = id;
+        c.name = name;
+        c.version = version;
+        c.image = image;
+        c.level = level;
+        c.speed = speed;
+        c.style = style;
+        c.size = size;
+        c.skills = new Skills();
+        c.skills.atk = skills.atk;
+        c.skills.def = skills.def;
+        c.skills.hp = skills.hp;
+        c.skills.magic = skills.magic;
+        c.skills.ranged = skills.ranged;
+        c.skills.str = skills.str;
+        c.offensive = offensive;
+        c.defensive = defensive;
+        c.attributes = attributes;
+        c.weakness = weakness;
+        c.toaInvocationLevel = toaInvocationLevel;
+        c.partySize = partySize;
+        c.partyMaxCombatLevel = partyMaxCombatLevel;
+        c.partyMaxHpLevel = partyMaxHpLevel;
+        c.partyAvgMiningLevel = partyAvgMiningLevel;
+        c.coxChallengeMode = coxChallengeMode;
+        return c;
+    }
+
     public boolean hasAttribute(String attribute) {
         if (attributes == null) {
             return false;

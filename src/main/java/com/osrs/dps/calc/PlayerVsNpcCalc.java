@@ -39,10 +39,14 @@ public final class PlayerVsNpcCalc {
     }
 
     public static DpsResult calculate(PlayerSetup player, Monster monster) {
-        return new PlayerVsNpcCalc(player, monster, null).run();
+        return new PlayerVsNpcCalc(player, CoxScaling.scale(monster), null).run();
     }
 
     private DpsResult run() {
+        if (m.hasAttribute("xerician") && (m.partySize > 1 || m.coxChallengeMode)) {
+            note("CoX scaling: " + m.partySize + " players"
+                    + (m.coxChallengeMode ? ", Challenge Mode" : ""));
+        }
         AttackDist dist = applyNpcTransforms(attackerDist());
         double accuracy = displayHitChance();
         double expected = dist.expectedDamage();

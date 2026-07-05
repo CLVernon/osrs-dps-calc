@@ -164,7 +164,7 @@ public class App extends Application {
                     setGraphic(null);
                     return;
                 }
-                setText(monster.displayName());
+                setText(monster.displayName() + monster.scaleSuffix());
                 icon.setImage(monster.image == null ? null
                         : com.osrs.dps.data.ImageCache.cached(monster.image));
                 setGraphic(icon);
@@ -214,8 +214,12 @@ public class App extends Application {
                 org.kordamp.ikonli.feather.Feather.SAVE,
                 "Save the selected target as a monster preset");
         savePreset.setOnAction(e -> saveMonsterPreset());
+        Button raidSettings = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.SLIDERS,
+                "Raid scaling: apply party size / CM settings to all CoX targets");
+        raidSettings.setOnAction(e -> editRaidSettings());
 
-        HBox buttons = new HBox(6, addMany, remove, edit, savePreset);
+        HBox buttons = new HBox(6, addMany, remove, edit, savePreset, raidSettings);
         Label header = new Label("Targets");
         header.getStyleClass().add("title-4");
         VBox box = new VBox(8, header, addDropdown, targetList, buttons);
@@ -262,6 +266,65 @@ public class App extends Application {
             info("Monster preset saved", "Saved \"" + sel.displayName() + "\".");
         } catch (IOException ex) {
             error("Could not save monster preset", ex.getMessage());
+        }
+    }
+
+    /** Applies party size / CM raid scaling to every CoX target in the list. */
+    private void editRaidSettings() {
+        List<Monster> coxTargets = targets.stream()
+                .filter(mo -> mo.hasAttribute("xerician"))
+                .toList();
+        if (coxTargets.isEmpty()) {
+            info("No CoX targets",
+                    "Add Chambers of Xeric monsters to the target list first - "
+                            + "raid scaling applies to Xerician monsters.");
+            return;
+        }
+        Monster first = coxTargets.get(0);
+
+        javafx.scene.control.Dialog<Boolean> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("CoX raid scaling");
+        dialog.setHeaderText("Applies to all " + coxTargets.size() + " CoX target(s)");
+        dialog.getDialogPane().getButtonTypes().addAll(
+                javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+
+        javafx.scene.control.Spinner<Integer> partySize =
+                new javafx.scene.control.Spinner<>(1, 100, Math.max(1, first.partySize));
+        javafx.scene.control.Spinner<Integer> maxCombat =
+                new javafx.scene.control.Spinner<>(3, 126, first.partyMaxCombatLevel);
+        javafx.scene.control.Spinner<Integer> maxHp =
+                new javafx.scene.control.Spinner<>(10, 99, first.partyMaxHpLevel);
+        javafx.scene.control.Spinner<Integer> avgMining =
+                new javafx.scene.control.Spinner<>(1, 99, first.partyAvgMiningLevel);
+        javafx.scene.control.CheckBox challengeMode =
+                new javafx.scene.control.CheckBox("Challenge Mode");
+        challengeMode.setSelected(first.coxChallengeMode);
+        for (var spinner : List.of(partySize, maxCombat, maxHp, avgMining)) {
+            spinner.setEditable(true);
+        }
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+        grid.setPadding(new Insets(10));
+        grid.addRow(0, new Label("Party size"), partySize);
+        grid.addRow(1, new Label("Highest combat level"), maxCombat);
+        grid.addRow(2, new Label("Highest Hitpoints"), maxHp);
+        grid.addRow(3, new Label("Avg Mining (Guardians)"), avgMining);
+        grid.addRow(4, new Label(""), challengeMode);
+        dialog.getDialogPane().setContent(grid);
+        dialog.setResultConverter(b -> b == javafx.scene.control.ButtonType.OK);
+
+        if (dialog.showAndWait().orElse(false)) {
+            for (Monster mo : coxTargets) {
+                mo.partySize = partySize.getValue();
+                mo.partyMaxCombatLevel = maxCombat.getValue();
+                mo.partyMaxHpLevel = maxHp.getValue();
+                mo.partyAvgMiningLevel = avgMining.getValue();
+                mo.coxChallengeMode = challengeMode.isSelected();
+            }
+            targetList.refresh();
+            refreshComparison();
         }
     }
 

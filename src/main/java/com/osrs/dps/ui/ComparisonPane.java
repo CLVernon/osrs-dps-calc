@@ -149,7 +149,10 @@ public class ComparisonPane extends VBox {
 
     private static String columnTitle(Monster monster) {
         String name = monster.displayName();
-        return name.length() > 24 ? name.substring(0, 22) + "..." : name;
+        if (name.length() > 24) {
+            name = name.substring(0, 22) + "...";
+        }
+        return name + monster.scaleSuffix();
     }
 
     private static String formatSeconds(double seconds) {
