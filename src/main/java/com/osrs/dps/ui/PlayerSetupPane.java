@@ -132,7 +132,8 @@ public class PlayerSetupPane extends VBox {
         wireCheck(sunfire, v -> setup.setSunfireRunes(v));
 
         chinDistance.setEditable(true);
-        chinDistance.setPrefWidth(70);
+        chinDistance.setMaxWidth(Double.MAX_VALUE);
+        spellDropdown.setMaxWidth(Double.MAX_VALUE);
         chinDistance.valueProperty().addListener((o, old, v) -> {
             if (!updating && setup != null && v != null) {
                 setup.setChinchompaDistance(v);

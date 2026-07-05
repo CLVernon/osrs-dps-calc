@@ -261,6 +261,49 @@ class DpsCalculatorTest {
     }
 
     @Test
+    void manualCastDoesNotTripleShadowBonuses() {
+        // Fire Surge base 24; occult +5%. Autocast on the shadow triples to +15%,
+        // manual cast does not: floor(24*1.05)=25 vs floor(24*1.15)=27.
+        Monster m = dummyMonster(100, 0, 0, 0, 100, 30, 0, 0, 0);
+        PlayerSetup p = new PlayerSetup("Manual cast");
+        p.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Tumeken's shadow (Charged)"));
+        p.setEquipped(EquipmentSlot.NECK, DATA.findEquipment("Occult necklace"));
+        p.setAttackType(AttackType.MAGIC);
+        p.setSpell(DATA.findSpell("Fire Surge"));
+
+        p.setStance(Stance.MANUAL_CAST);
+        assertEquals(25, DpsCalculator.calculate(p, m).maxHit());
+        assertEquals(5, DpsCalculator.calculate(p, m).attackSpeedTicks());
+
+        p.setStance(Stance.AUTOCAST);
+        assertEquals(27, DpsCalculator.calculate(p, m).maxHit());
+    }
+
+    @Test
+    void salamanderBlazeMaxHit() {
+        // Black salamander on the magic (Blaze) style: floor((99*(92+64)+320)/640) = 24
+        Monster m = dummyMonster(100, 0, 0, 0, 100, 0, 0, 0, 0);
+        PlayerSetup p = new PlayerSetup("Salamander");
+        p.setEquipped(EquipmentSlot.WEAPON, DATA.findEquipment("Black salamander"));
+        p.setAttackType(AttackType.MAGIC);
+        p.setStance(Stance.DEFENSIVE);
+        DpsResult r = DpsCalculator.calculate(p, m);
+        assertEquals(24, r.maxHit());
+    }
+
+    @Test
+    void potionListsMatchAttackType() {
+        List<Potion> ranged = List.of(Potion.forAttackType(AttackType.RANGED));
+        assertTrue(ranged.contains(Potion.RANGING_POTION));
+        assertTrue(ranged.contains(Potion.BASTION_POTION));
+        List<Potion> magic = List.of(Potion.forAttackType(AttackType.MAGIC));
+        assertTrue(magic.contains(Potion.SATURATED_HEART));
+        assertTrue(magic.contains(Potion.IMBUED_HEART));
+        List<Potion> melee = List.of(Potion.forAttackType(AttackType.SLASH));
+        assertTrue(melee.contains(Potion.SUPER_COMBAT));
+    }
+
+    @Test
     void magicWithoutSpellOrPoweredStaffIsZero() {
         Monster m = dummyMonster(100, 0, 0, 0, 100, 0, 0, 0, 0);
         PlayerSetup p = new PlayerSetup("No spell");

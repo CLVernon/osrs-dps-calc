@@ -193,9 +193,12 @@ public class App extends Application {
             }
         });
 
-        Button addMany = new Button("Add many...");
+        Button addMany = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.LIST,
+                "Add several targets at once (Ctrl/Shift multi-select)");
         addMany.setOnAction(e -> addTargets());
-        Button remove = new Button("Remove");
+        Button remove = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.TRASH_2, "Remove the selected target");
         remove.setOnAction(e -> {
             Monster sel = targetList.getSelectionModel().getSelectedItem();
             if (sel != null) {
@@ -203,16 +206,19 @@ public class App extends Application {
                 refreshComparison();
             }
         });
-        Button edit = new Button("Edit...");
+        Button edit = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.EDIT_2,
+                "Edit / customise the selected target's stats");
         edit.setOnAction(e -> editTarget());
-        Button savePreset = new Button("Save preset");
+        Button savePreset = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.SAVE,
+                "Save the selected target as a monster preset");
         savePreset.setOnAction(e -> saveMonsterPreset());
 
-        HBox row1 = new HBox(6, addMany, remove);
-        HBox row2 = new HBox(6, edit, savePreset);
+        HBox buttons = new HBox(6, addMany, remove, edit, savePreset);
         Label header = new Label("Targets");
         header.getStyleClass().add("title-4");
-        VBox box = new VBox(8, header, addDropdown, targetList, row1, row2);
+        VBox box = new VBox(8, header, addDropdown, targetList, buttons);
         box.setPadding(new Insets(10));
         VBox.setVgrow(targetList, Priority.ALWAYS);
         return box;
@@ -287,7 +293,8 @@ public class App extends Application {
             }
         });
 
-        Button add = new Button("Add");
+        Button add = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.PLUS, "Add a new gear setup");
         add.setOnAction(e -> {
             PlayerSetup s = new PlayerSetup("Setup " + (setups.size() + 1));
             s.setCharacter(character);
@@ -295,7 +302,8 @@ public class App extends Application {
             setupList.getSelectionModel().select(s);
             refreshComparison();
         });
-        Button duplicate = new Button("Duplicate");
+        Button duplicate = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.COPY, "Duplicate the selected setup");
         duplicate.setOnAction(e -> {
             PlayerSetup sel = setupList.getSelectionModel().getSelectedItem();
             if (sel != null) {
@@ -305,7 +313,8 @@ public class App extends Application {
                 refreshComparison();
             }
         });
-        Button remove = new Button("Remove");
+        Button remove = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.TRASH_2, "Remove the selected setup");
         remove.setOnAction(e -> {
             PlayerSetup sel = setupList.getSelectionModel().getSelectedItem();
             if (sel != null) {
@@ -313,16 +322,17 @@ public class App extends Application {
                 refreshComparison();
             }
         });
-        Button save = new Button("Save preset");
+        Button save = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.SAVE, "Save the selected setup as a preset");
         save.setOnAction(e -> savePlayerPreset());
-        Button load = new Button("Load preset");
+        Button load = com.osrs.dps.ui.IconButtons.of(
+                org.kordamp.ikonli.feather.Feather.FOLDER, "Load a saved gear preset");
         load.setOnAction(e -> loadPlayerPreset());
 
-        HBox row1 = new HBox(6, add, duplicate, remove);
-        HBox row2 = new HBox(6, save, load);
+        HBox buttons = new HBox(6, add, duplicate, remove, save, load);
         Label header = new Label("Gear setups");
         header.getStyleClass().add("title-4");
-        VBox box = new VBox(8, characterPane, new Separator(), header, setupList, row1, row2);
+        VBox box = new VBox(8, characterPane, new Separator(), header, setupList, buttons);
         box.setPadding(new Insets(10));
         VBox.setVgrow(setupList, Priority.ALWAYS);
         return box;

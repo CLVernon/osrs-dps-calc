@@ -29,7 +29,9 @@ public class CharacterPane extends VBox {
 
     private final TextField nameField = new TextField();
     private final ComboBox<HiscoresClient.GameMode> gameMode = new ComboBox<>();
-    private final Button importButton = new Button("Import");
+    private final Button importButton = IconButtons.of(
+            org.kordamp.ikonli.feather.Feather.DOWNLOAD_CLOUD,
+            "Import levels from the official OSRS hiscores");
     private final Label statusLabel = new Label();
     private final Spinner<Integer> attack = levelSpinner();
     private final Spinner<Integer> strength = levelSpinner();

@@ -39,6 +39,8 @@ class PresetManagerTest {
         setup.setPotion(Potion.SUPER_COMBAT);
         setup.setOnSlayerTask(true);
 
+        setup.setStyleName("Lash");
+        setup.setStance(Stance.CONTROLLED);
         manager.savePlayerPreset(setup);
         List<PlayerSetup> loaded = manager.loadPlayerPresets(data);
 
@@ -48,6 +50,8 @@ class PresetManagerTest {
         assertEquals("Abyssal whip", restored.getWeapon().name);
         assertEquals(Prayer.PIETY, restored.getPrayer());
         assertEquals(Potion.SUPER_COMBAT, restored.getPotion());
+        assertEquals("Lash", restored.getStyleName());
+        assertEquals(Stance.CONTROLLED, restored.getStance());
         assertTrue(restored.isOnSlayerTask());
     }
 
