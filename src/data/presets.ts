@@ -9,6 +9,7 @@ import { EQUIPMENT_SLOTS } from '../model/types';
 const CHARACTER_KEY = 'osrs-dps.character';
 const PLAYER_PRESETS_KEY = 'osrs-dps.playerPresets';
 const MONSTER_PRESETS_KEY = 'osrs-dps.monsterPresets';
+const SESSION_KEY = 'osrs-dps.session';
 
 export interface PlayerPresetDto {
   name: string;
@@ -45,6 +46,22 @@ const write = (key: string, value: unknown): void => {
     console.error('Could not save to localStorage', e);
   }
 };
+
+// --- Working session (auto-saved live state) ---
+
+export interface Session {
+  setups: PlayerSetup[];
+  targets: Monster[];
+  selectedSetupUid: string | null;
+}
+
+export const loadSession = (): Session | null => {
+  const s = read<Session | null>(SESSION_KEY, null);
+  if (!s || !Array.isArray(s.setups) || !Array.isArray(s.targets)) return null;
+  return s;
+};
+
+export const saveSession = (session: Session): void => write(SESSION_KEY, session);
 
 // --- Character ---
 

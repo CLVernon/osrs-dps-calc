@@ -3,7 +3,9 @@ import type { Monster, PlayerCharacter, PlayerSetup } from '../model/types';
 import { copySetup, newSetup } from '../model/types';
 import type { Repository } from '../data/repository';
 import { findMonster } from '../data/repository';
-import { loadCharacter, saveCharacter } from '../data/presets';
+import { loadCharacter, loadSession, saveCharacter, saveSession } from '../data/presets';
+
+const restored = loadSession();
 
 export interface AppState {
   repo: Repository | null;
@@ -31,9 +33,9 @@ export const useStore = create<AppState>((set, get) => ({
   repo: null,
   dataStatus: 'Loading wiki data...',
   character: loadCharacter(),
-  setups: [newSetup('Setup 1')],
-  selectedSetupUid: null,
-  targets: [],
+  setups: restored?.setups?.length ? restored.setups : [newSetup('Setup 1')],
+  selectedSetupUid: restored?.selectedSetupUid ?? null,
+  targets: restored?.targets ?? [],
 
   setRepo: (repo) => {
     const targets: Monster[] = [];
@@ -104,3 +106,21 @@ export const useStore = create<AppState>((set, get) => ({
 
   setTargets: (targets) => set({ targets }),
 }));
+
+// Auto-save the working session (setups, targets, selection) on any change
+let lastSetups = useStore.getState().setups;
+let lastTargets = useStore.getState().targets;
+let lastSelected = useStore.getState().selectedSetupUid;
+useStore.subscribe((state) => {
+  if (state.setups !== lastSetups || state.targets !== lastTargets
+    || state.selectedSetupUid !== lastSelected) {
+    lastSetups = state.setups;
+    lastTargets = state.targets;
+    lastSelected = state.selectedSetupUid;
+    saveSession({
+      setups: state.setups,
+      targets: state.targets,
+      selectedSetupUid: state.selectedSetupUid,
+    });
+  }
+});
