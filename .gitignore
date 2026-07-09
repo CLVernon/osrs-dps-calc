@@ -1,8 +1,7 @@
-target/
-.idea/
-*.iml
-.vscode/
-.classpath
-.project
-.settings/
+node_modules/
+dist/
 *.log
+.idea/
+.vscode/
+*.local
+.claude/

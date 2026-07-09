@@ -1,0 +1,530 @@
+:root {
+  --bg: #0d1117;
+  --bg-panel: #161b22;
+  --bg-raised: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-subtle: #9da7b3;
+  --accent: #2f81f7;
+  --green: #7ee787;
+  --red: #ff7b72;
+  --zero: #6e7681;
+  --best-bg: rgba(46, 160, 67, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  background: var(--bg-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input[type='text'],
+input[type='number'],
+select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+input[type='number'] {
+  width: 64px;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-subtle);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.topbar h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.topbar .status {
+  margin-left: auto;
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  #root {
+    height: auto;
+  }
+
+  .main {
+    flex-direction: column;
+  }
+
+  .column.left,
+  .column.right {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.column {
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.column.left {
+  width: 265px;
+  min-width: 265px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.column.center {
+  flex: 1;
+}
+
+.column.right {
+  width: 280px;
+  min-width: 280px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin: 10px 0 6px;
+}
+
+.subtle {
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Skill grid (stats-tab style) */
+.skill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.skill-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+.skill-cell img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.skill-cell input {
+  width: 52px;
+  border: none;
+  background: transparent;
+  text-align: right;
+}
+
+/* Setup / target lists */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.item-list .entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.item-list .entry:hover {
+  background: var(--bg-raised);
+}
+
+.item-list .entry.selected {
+  background: var(--bg-raised);
+  border-color: var(--accent);
+}
+
+.item-list .entry img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* Equipment slot grid */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  gap: 6px;
+  justify-content: start;
+}
+
+.slot-button {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+}
+
+.slot-button img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.slot-button img.placeholder {
+  opacity: 0.3;
+}
+
+.slot-button .spacer {
+  visibility: hidden;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropdown > img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.dropdown input {
+  width: 100%;
+}
+
+.dropdown-popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: max(100%, 360px);
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown-popup .option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.dropdown-popup .option img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.dropdown-popup .option:hover,
+.dropdown-popup .option.highlighted {
+  background: var(--bg-raised);
+}
+
+/* Tooltip */
+.has-tooltip {
+  position: relative;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: #1c2128;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  max-width: 380px;
+  font-size: 12px;
+}
+
+.tooltip .title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.tooltip table {
+  border-collapse: collapse;
+}
+
+.tooltip td,
+.tooltip th {
+  padding: 1px 8px 1px 0;
+  text-align: right;
+  font-weight: normal;
+}
+
+.tooltip th {
+  color: var(--text-subtle);
+  font-size: 11px;
+}
+
+.tooltip td:first-child,
+.tooltip th:first-child {
+  text-align: left;
+  color: var(--text-subtle);
+}
+
+.value-pos {
+  color: var(--green);
+}
+
+.value-neg {
+  color: var(--red);
+}
+
+.value-zero {
+  color: var(--zero);
+}
+
+/* Combat form */
+.combat-grid {
+  display: grid;
+  grid-template-columns: 88px 1fr 96px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.combat-grid label {
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+.buff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+}
+
+.buff-grid label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.buff-grid img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* Editor layout */
+.editor-columns {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+/* Bonus card */
+.bonus-card table {
+  border-collapse: collapse;
+}
+
+.bonus-card td,
+.bonus-card th {
+  padding: 2px 12px 2px 0;
+  text-align: right;
+  font-weight: normal;
+  font-size: 13px;
+}
+
+.bonus-card th {
+  color: var(--text-subtle);
+  font-size: 11px;
+}
+
+.bonus-card td:first-child {
+  text-align: left;
+  color: var(--text-subtle);
+}
+
+/* Comparison matrix */
+.matrix-wrap {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  padding: 8px 14px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.matrix th,
+.matrix td {
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.matrix th {
+  background: var(--bg-raised);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.matrix td:first-child,
+.matrix th:first-child {
+  text-align: left;
+}
+
+.matrix td.best {
+  background: var(--best-bg);
+}
+
+.matrix td.clickable {
+  cursor: pointer;
+}
+
+.matrix-detail {
+  margin-top: 6px;
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  min-width: 360px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal h3 {
+  margin: 0 0 12px;
+}
+
+.modal .form-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.modal .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.icon-note {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
