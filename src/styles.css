@@ -491,6 +491,26 @@ select:focus {
   font-size: 12px;
 }
 
+/* Icon select (prayer / potion) */
+.icon-select {
+  position: relative;
+}
+
+.icon-select-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--bg);
+  padding: 4px 8px;
+}
+
+.icon-select-button img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 /* Slot picker popover (anchored to the equipment slot) */
 .slot-popover {
   position: fixed;

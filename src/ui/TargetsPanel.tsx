@@ -35,6 +35,7 @@ export const TargetsPanel = () => {
         tooltip={monsterTooltip}
         placeholder="Type to add a target..."
         clearOnSelect
+        keepOpenOnSelect
         onSelect={addTarget}
       />
       <div className="item-list">

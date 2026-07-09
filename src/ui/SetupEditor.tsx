@@ -9,6 +9,7 @@ import { prayersForType } from '../model/prayers';
 import { potionsForType } from '../model/potions';
 import { equipmentForSlot, wikiImageUrl } from '../data/repository';
 import { SearchableDropdown } from './SearchableDropdown';
+import { IconSelect } from './IconSelect';
 import { SlotPicker } from './SlotPicker';
 import { Tooltip } from './Tooltip';
 import { equipmentTooltip, spellTooltip } from './statTooltips';
@@ -56,6 +57,22 @@ const Value = ({ v, suffix = '' }: { v: number; suffix?: string }) => (
   </td>
 );
 
+/**
+ * Picks a sensible default style for a weapon: keep the previous attack type
+ * when the new weapon still offers it, then prefer Rapid (ranged) / Aggressive
+ * (melee) / Autocast (magic) within that type.
+ */
+const pickDefaultStyle = (styles: CombatStyle[], prevType: CombatStyle['type']): CombatStyle => {
+  const nonManual = styles.filter((s) => s.stance !== 'Manual Cast');
+  const sameType = nonManual.filter((s) => s.type === prevType);
+  const pool = sameType.length ? sameType : nonManual;
+  return pool.find((s) => s.stance === 'Rapid')
+    ?? pool.find((s) => s.stance === 'Aggressive')
+    ?? pool.find((s) => s.stance === 'Autocast')
+    ?? pool[0]
+    ?? styles[0];
+};
+
 export const SetupEditor = () => {
   const repo = useStore((s) => s.repo);
   const setups = useStore((s) => s.setups);
@@ -75,8 +92,7 @@ export const SetupEditor = () => {
   const currentStyle = setup
     ? (styles.find((st) => st.name === setup.styleName
         && st.type === setup.attackType && st.stance === setup.stance)
-      ?? styles.find((st) => st.type === setup.attackType && st.stance !== 'Manual Cast')
-      ?? styles[0])
+      ?? pickDefaultStyle(styles, setup.attackType))
     : undefined;
 
   // Keep the stored style consistent when the weapon changes
@@ -206,13 +222,21 @@ export const SetupEditor = () => {
             </div>
 
             <label>Prayer</label>
-            <select value={setup.prayerId} onChange={(e) => patch({ prayerId: e.target.value })}>
-              {prayers.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-            </select>
+            <IconSelect
+              items={prayers}
+              value={prayers.find((p) => p.id === setup.prayerId) ?? prayers[0]}
+              label={(p) => p.label}
+              image={(p) => p.image}
+              onSelect={(p) => patch({ prayerId: p.id })}
+            />
             <label>Potion</label>
-            <select value={setup.potionId} onChange={(e) => patch({ potionId: e.target.value })}>
-              {potions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-            </select>
+            <IconSelect
+              items={potions}
+              value={potions.find((p) => p.id === setup.potionId) ?? potions[0]}
+              label={(p) => p.label}
+              image={(p) => p.image}
+              onSelect={(p) => patch({ potionId: p.id })}
+            />
 
             <label>Spell</label>
             <div style={{ gridColumn: '2 / 3' }} className="row">

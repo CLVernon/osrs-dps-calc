@@ -15,18 +15,21 @@ interface Props<T> {
   placeholder?: string;
   /** Clear the field after selecting (add-to-list usage) */
   clearOnSelect?: boolean;
+  /** Keep the popup open and the typed text after selecting (add several in a row) */
+  keepOpenOnSelect?: boolean;
   disabled?: boolean;
 }
 
 export const SearchableDropdown = <T,>({
   items, label, image, tooltip, onSelect, value = null, placeholder = 'Type to search...',
-  clearOnSelect = false, disabled = false,
+  clearOnSelect = false, keepOpenOnSelect = false, disabled = false,
 }: Props<T>) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -47,6 +50,11 @@ export const SearchableDropdown = <T,>({
 
   const choose = (item: T) => {
     onSelect(item);
+    if (keepOpenOnSelect) {
+      // Keep the typed text and popup open so several similar items can be added
+      inputRef.current?.focus();
+      return;
+    }
     setOpen(false);
     setQuery('');
   };
@@ -80,6 +88,7 @@ export const SearchableDropdown = <T,>({
     <div className="dropdown grow" ref={rootRef}>
       {!clearOnSelect && valueImage && <img src={valueImage} alt="" />}
       <input
+        ref={inputRef}
         type="text"
         value={displayText}
         placeholder={value && !clearOnSelect ? label(value) : placeholder}
