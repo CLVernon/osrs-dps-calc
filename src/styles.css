@@ -491,6 +491,55 @@ select:focus {
   font-size: 12px;
 }
 
+/* Slot picker popover (anchored to the equipment slot) */
+.slot-popover {
+  position: fixed;
+  z-index: 600;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  max-height: 340px;
+  overflow: hidden;
+}
+
+.slot-popover-header {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.slot-popover-header input {
+  flex: 1;
+  width: auto;
+}
+
+.slot-popover-list {
+  overflow-y: auto;
+}
+
+.slot-popover-list .option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.slot-popover-list .option img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.slot-popover-list .option:hover,
+.slot-popover-list .option.highlighted {
+  background: var(--bg-raised);
+}
+
 /* Modal */
 .modal-overlay {
   position: fixed;

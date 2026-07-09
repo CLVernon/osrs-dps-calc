@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../state/store';
 import {
   type CombatStyle, type EquipmentItem, type EquipmentSlotName,
-  type PlayerSetup, displayName,
+  type PlayerSetup,
 } from '../model/types';
 import { stylesForWeapon } from '../model/weaponStyles';
 import { prayersForType } from '../model/prayers';
 import { potionsForType } from '../model/potions';
 import { equipmentForSlot, wikiImageUrl } from '../data/repository';
 import { SearchableDropdown } from './SearchableDropdown';
+import { SlotPicker } from './SlotPicker';
 import { Tooltip } from './Tooltip';
 import { equipmentTooltip, spellTooltip } from './statTooltips';
 import { computeTotals } from '../calc/equipmentTotals';
@@ -60,7 +61,7 @@ export const SetupEditor = () => {
   const setups = useStore((s) => s.setups);
   const selectedUid = useStore((s) => s.selectedSetupUid);
   const updateSetup = useStore((s) => s.updateSetup);
-  const [pickingSlot, setPickingSlot] = useState<EquipmentSlotName | null>(null);
+  const [picking, setPicking] = useState<{ slot: EquipmentSlotName; anchor: DOMRect } | null>(null);
 
   const setup = setups.find((s) => s.uid === selectedUid);
 
@@ -155,7 +156,10 @@ export const SetupEditor = () => {
                 <button
                   key={slot}
                   className="slot-button"
-                  onClick={() => setPickingSlot(slot)}
+                  onClick={(e) => setPicking({
+                    slot,
+                    anchor: (e.currentTarget as HTMLElement).getBoundingClientRect(),
+                  })}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     equip(slot, null);
@@ -270,31 +274,20 @@ export const SetupEditor = () => {
         </table>
       </div>
 
-      {pickingSlot && (
-        <div className="modal-overlay" onClick={() => setPickingSlot(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Choose {pickingSlot}</h3>
-            <SearchableDropdown
-              items={equipmentForSlot(repo, pickingSlot)}
-              label={displayName}
-              image={(item) => item.image}
-              tooltip={equipmentTooltip}
-              placeholder="Type to search..."
-              clearOnSelect
-              onSelect={(item) => {
-                equip(pickingSlot, item);
-                setPickingSlot(null);
-              }}
-            />
-            <div className="actions">
-              <button onClick={() => {
-                equip(pickingSlot, null);
-                setPickingSlot(null);
-              }}>Clear slot</button>
-              <button onClick={() => setPickingSlot(null)}>Cancel</button>
-            </div>
-          </div>
-        </div>
+      {picking && (
+        <SlotPicker
+          items={equipmentForSlot(repo, picking.slot)}
+          anchor={picking.anchor}
+          onSelect={(item) => {
+            equip(picking.slot, item);
+            setPicking(null);
+          }}
+          onClear={() => {
+            equip(picking.slot, null);
+            setPicking(null);
+          }}
+          onClose={() => setPicking(null)}
+        />
       )}
     </div>
   );
