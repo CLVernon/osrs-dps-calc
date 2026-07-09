@@ -107,45 +107,6 @@ select:focus {
   min-height: 0;
 }
 
-/* Left: character + gear setups + the loadout editor (scrolls) */
-.panel-left {
-  width: 48%;
-  min-width: 440px;
-  max-width: 720px;
-  padding: 12px;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
-  background: var(--bg-panel);
-}
-
-/* Right: compact targets on top, big comparison matrix filling the rest */
-.panel-right {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.targets-area {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  overflow-y: auto;
-  flex-shrink: 0;
-  max-height: 40%;
-}
-
-.matrix-area {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 12px 0;
-}
-
 @media (max-width: 900px) {
   #root {
     height: auto;
@@ -155,17 +116,36 @@ select:focus {
     flex-direction: column;
   }
 
-  .panel-left {
+  .column.left,
+  .column.right {
     width: 100%;
     min-width: 0;
-    max-width: none;
-    border-right: none;
+    border: none;
     border-bottom: 1px solid var(--border);
   }
+}
 
-  .targets-area {
-    max-height: none;
-  }
+.column {
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.column.left {
+  width: 265px;
+  min-width: 265px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.column.center {
+  flex: 1;
+}
+
+.column.right {
+  width: 280px;
+  min-width: 280px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-panel);
 }
 
 .section-title {
@@ -466,8 +446,10 @@ select:focus {
 
 /* Comparison matrix */
 .matrix-wrap {
-  padding: 10px 14px;
-  height: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  padding: 8px 14px;
+  max-height: 300px;
   overflow: auto;
 }
 

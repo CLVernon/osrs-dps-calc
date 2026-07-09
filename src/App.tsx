@@ -38,22 +38,19 @@ export const App = () => {
         <span className="status">{dataStatus}</span>
       </div>
       <div className="main">
-        <div className="panel-left">
+        <div className="column left">
           <CharacterPanel />
-          <hr className="divider" />
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '12px 0' }} />
           <SetupsPanel />
-          <hr className="divider" />
+        </div>
+        <div className="column center">
           <SetupEditor />
         </div>
-        <div className="panel-right">
-          <div className="targets-area">
-            <TargetsPanel />
-          </div>
-          <div className="matrix-area">
-            <ComparisonMatrix />
-          </div>
+        <div className="column right">
+          <TargetsPanel />
         </div>
       </div>
+      <ComparisonMatrix />
     </>
   );
 };
