@@ -62,6 +62,8 @@ export const SetupEditor = () => {
   const selectedUid = useStore((s) => s.selectedSetupUid);
   const updateSetup = useStore((s) => s.updateSetup);
   const [picking, setPicking] = useState<{ slot: EquipmentSlotName; anchor: DOMRect } | null>(null);
+  // Search text carried between slots so similar gear (e.g. "ancestral") stays typed
+  const [gearQuery, setGearQuery] = useState('');
 
   const setup = setups.find((s) => s.uid === selectedUid);
 
@@ -278,6 +280,8 @@ export const SetupEditor = () => {
         <SlotPicker
           items={equipmentForSlot(repo, picking.slot)}
           anchor={picking.anchor}
+          initialQuery={gearQuery}
+          onQueryChange={setGearQuery}
           onSelect={(item) => {
             equip(picking.slot, item);
             setPicking(null);

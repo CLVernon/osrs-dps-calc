@@ -8,14 +8,20 @@ import { equipmentTooltip } from './statTooltips';
 interface Props {
   items: EquipmentItem[];
   anchor: DOMRect;
+  /** Initial search text, carried over from the previous slot selection. */
+  initialQuery?: string;
   onSelect: (item: EquipmentItem) => void;
   onClear: () => void;
   onClose: () => void;
+  /** Reports search text changes so they persist across slots. */
+  onQueryChange?: (query: string) => void;
 }
 
 /** A search popover anchored beneath the clicked equipment slot. */
-export const SlotPicker = ({ items, anchor, onSelect, onClear, onClose }: Props) => {
-  const [query, setQuery] = useState('');
+export const SlotPicker = ({
+  items, anchor, initialQuery = '', onSelect, onClear, onClose, onQueryChange,
+}: Props) => {
+  const [query, setQuery] = useState(initialQuery);
   const [highlighted, setHighlighted] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +35,8 @@ export const SlotPicker = ({ items, anchor, onSelect, onClear, onClose }: Props)
 
   useEffect(() => {
     inputRef.current?.focus();
+    // Select existing text so it filters immediately but is easy to overwrite
+    inputRef.current?.select();
   }, []);
 
   useEffect(() => {
@@ -84,6 +92,7 @@ export const SlotPicker = ({ items, anchor, onSelect, onClear, onClose }: Props)
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            onQueryChange?.(e.target.value);
             setHighlighted(0);
           }}
           onKeyDown={onKeyDown}
