@@ -81,6 +81,9 @@ export const ONE_HIT_MONSTERS = new Set([7223, 8584, 11193]);
 export const GUARANTEED_ACCURACY_MONSTERS = new Set([5916]);
 export const INFINITE_HEALTH_MONSTERS = new Set([14779]);
 
-export const ALWAYS_MAX_HIT_MELEE = new Set([11710, 11713, 12814, 11755, 11758]);
-export const ALWAYS_MAX_HIT_RANGED = new Set([11711, 11714, 12815, 11717, 11715]);
-export const ALWAYS_MAX_HIT_MAGIC = new Set([11709, 11712, 12816, 14151, 14150]);
+export const YAMA_IDS = new Set([14176]);
+export const YAMA_VOID_FLARE_IDS = new Set([14179]);
+
+export const ALWAYS_MAX_HIT_MELEE = new Set([11710, 11713, 12814, 11755, 11758, 14179]);
+export const ALWAYS_MAX_HIT_RANGED = new Set([11711, 11714, 12815, 11717, 11715, 14179]);
+export const ALWAYS_MAX_HIT_MAGIC = new Set([11709, 11712, 12816, 14151, 14150, 14179]);

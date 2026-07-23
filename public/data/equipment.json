@@ -10793,13 +10793,13 @@
     "weight": 2.267,
     "version": "Locked",
     "slot": "weapon",
-    "image": "Ancient sceptre.png",
+    "image": "Ancient sceptre (l).png",
     "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -10830,7 +10830,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -22050,14 +22050,14 @@
     "speed": 4,
     "category": "Slash Sword",
     "bonuses": {
-      "str": 89,
+      "str": 93,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
     },
     "offensive": {
       "stab": 55,
-      "slash": 94,
+      "slash": 100,
       "crush": 0,
       "magic": 0,
       "ranged": 0
@@ -22112,14 +22112,14 @@
     "speed": 4,
     "category": "Slash Sword",
     "bonuses": {
-      "str": 89,
+      "str": 93,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
     },
     "offensive": {
       "stab": 55,
-      "slash": 94,
+      "slash": 100,
       "crush": 0,
       "magic": 0,
       "ranged": 0
@@ -22329,14 +22329,14 @@
     "speed": 4,
     "category": "Slash Sword",
     "bonuses": {
-      "str": 89,
+      "str": 93,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
     },
     "offensive": {
       "stab": 55,
-      "slash": 94,
+      "slash": 100,
       "crush": 0,
       "magic": 0,
       "ranged": 0
@@ -22703,7 +22703,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -22728,13 +22728,13 @@
     "weight": 2.267,
     "version": "Locked",
     "slot": "weapon",
-    "image": "Blood ancient sceptre.png",
+    "image": "Blood ancient sceptre (l).png",
     "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -22765,7 +22765,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -50940,7 +50940,7 @@
     "slot": "weapon",
     "image": "Crimson kisten.png",
     "speed": 4,
-    "category": "Axe",
+    "category": "Spiked",
     "bonuses": {
       "str": 56,
       "ranged_str": 0,
@@ -69693,7 +69693,7 @@
     "weight": 8.164,
     "version": "Locked",
     "slot": "legs",
-    "image": "Elite void robe.png",
+    "image": "Elite void robe (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -69848,7 +69848,7 @@
     "weight": 6.803,
     "version": "Locked",
     "slot": "body",
-    "image": "Elite void top.png",
+    "image": "Elite void top (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -72855,7 +72855,7 @@
     "weight": 4,
     "version": "Locked",
     "slot": "body",
-    "image": "Fighter torso.png",
+    "image": "Fighter torso (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -76827,13 +76827,13 @@
     "speed": 4,
     "category": "Stab Sword",
     "bonuses": {
-      "str": 89,
+      "str": 93,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
     },
     "offensive": {
-      "stab": 94,
+      "stab": 100,
       "slash": 55,
       "crush": 0,
       "magic": 0,
@@ -86000,7 +86000,7 @@
     "version": "",
     "slot": "weapon",
     "image": "Guthix staff.png",
-    "speed": 5,
+    "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 2,
@@ -88235,13 +88235,13 @@
     "speed": 4,
     "category": "Stab Sword",
     "bonuses": {
-      "str": 89,
+      "str": 93,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
     },
     "offensive": {
-      "stab": 94,
+      "stab": 100,
       "slash": 55,
       "crush": 0,
       "magic": 0,
@@ -89694,7 +89694,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -89719,13 +89719,13 @@
     "weight": 2.267,
     "version": "Locked",
     "slot": "weapon",
-    "image": "Ice ancient sceptre.png",
+    "image": "Ice ancient sceptre (l).png",
     "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -89756,7 +89756,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -91517,7 +91517,7 @@
     "weight": 0.453,
     "version": "Locked",
     "slot": "cape",
-    "image": "Infernal max cape.png",
+    "image": "Infernal max cape (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -92141,15 +92141,15 @@
     "speed": 0,
     "category": "",
     "bonuses": {
-      "str": 4,
+      "str": 6,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 1
     },
     "offensive": {
-      "stab": -2,
-      "slash": -2,
-      "crush": 8,
+      "stab": 0,
+      "slash": 0,
+      "crush": 10,
       "magic": -5,
       "ranged": -5
     },
@@ -92178,9 +92178,9 @@
       "prayer": 2
     },
     "offensive": {
-      "stab": -3,
-      "slash": -3,
-      "crush": 12,
+      "stab": 0,
+      "slash": 0,
+      "crush": 16,
       "magic": -11,
       "ranged": -10
     },
@@ -92203,7 +92203,7 @@
     "speed": 4,
     "category": "Spiked",
     "bonuses": {
-      "str": 89,
+      "str": 96,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 2
@@ -92211,7 +92211,7 @@
     "offensive": {
       "stab": 52,
       "slash": -4,
-      "crush": 95,
+      "crush": 102,
       "magic": 0,
       "ranged": 0
     },
@@ -92240,8 +92240,8 @@
       "prayer": 2
     },
     "offensive": {
-      "stab": -3,
-      "slash": -3,
+      "stab": 0,
+      "slash": 0,
       "crush": 12,
       "magic": -9,
       "ranged": -5
@@ -101598,7 +101598,7 @@
     "bonuses": {
       "str": 0,
       "ranged_str": 0,
-      "magic_str": 0,
+      "magic_str": 100,
       "prayer": 0
     },
     "offensive": {
@@ -111703,7 +111703,7 @@
     "category": "",
     "bonuses": {
       "str": 0,
-      "ranged_str": 0,
+      "ranged_str": 1,
       "magic_str": 0,
       "prayer": 0
     },
@@ -130733,7 +130733,7 @@
     "version": "",
     "slot": "weapon",
     "image": "Saradomin staff.png",
-    "speed": 5,
+    "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 2,
@@ -131318,12 +131318,12 @@
   {
     "name": "Seeking adamant arrow",
     "id": 33577,
-    "weight": 0.018,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking adamant arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 31,
@@ -131349,12 +131349,12 @@
   {
     "name": "Seeking amethyst arrow",
     "id": 33589,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking amethyst arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 55,
@@ -131380,12 +131380,12 @@
   {
     "name": "Seeking broad arrows",
     "id": 33601,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking broad arrows 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 28,
@@ -131411,12 +131411,12 @@
   {
     "name": "Seeking bronze arrow",
     "id": 33553,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking bronze arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 7,
@@ -131442,12 +131442,12 @@
   {
     "name": "Seeking dragon arrow",
     "id": 33595,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking dragon arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 60,
@@ -131473,12 +131473,12 @@
   {
     "name": "Seeking iron arrow",
     "id": 33559,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking iron arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 10,
@@ -131504,12 +131504,12 @@
   {
     "name": "Seeking mithril arrow",
     "id": 33571,
-    "weight": 0.014,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking mithril arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 22,
@@ -131535,12 +131535,12 @@
   {
     "name": "Seeking rune arrow",
     "id": 33583,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking rune arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 49,
@@ -131566,12 +131566,12 @@
   {
     "name": "Seeking steel arrow",
     "id": 33565,
-    "weight": 0.016,
+    "weight": 0,
     "version": "",
     "slot": "ammo",
     "image": "Seeking steel arrow 5.png",
     "speed": 0,
-    "category": "Unarmed",
+    "category": "",
     "bonuses": {
       "str": 0,
       "ranged_str": 16,
@@ -132009,7 +132009,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -132034,13 +132034,13 @@
     "weight": 2.267,
     "version": "Locked",
     "slot": "weapon",
-    "image": "Shadow ancient sceptre.png",
+    "image": "Shadow ancient sceptre (l).png",
     "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -132071,7 +132071,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -132171,7 +132171,7 @@
       "stab": 0,
       "slash": 0,
       "crush": 0,
-      "magic": -6,
+      "magic": 2,
       "ranged": -2
     },
     "defensive": {
@@ -136659,7 +136659,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -136684,13 +136684,13 @@
     "weight": 2.267,
     "version": "Locked",
     "slot": "weapon",
-    "image": "Smoke ancient sceptre.png",
+    "image": "Smoke ancient sceptre (l).png",
     "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -136721,7 +136721,7 @@
     "bonuses": {
       "str": 60,
       "ranged_str": 0,
-      "magic_str": 50,
+      "magic_str": 100,
       "prayer": -1
     },
     "offensive": {
@@ -137617,7 +137617,7 @@
     "speed": 5,
     "category": "Axe",
     "bonuses": {
-      "str": 121,
+      "str": 125,
       "ranged_str": 0,
       "magic_str": 0,
       "prayer": 0
@@ -156399,7 +156399,7 @@
     "weight": 0.453,
     "version": "Locked",
     "slot": "hands",
-    "image": "Void knight gloves.png",
+    "image": "Void knight gloves (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -156647,7 +156647,7 @@
     "weight": 8.164,
     "version": "Locked",
     "slot": "legs",
-    "image": "Void knight robe.png",
+    "image": "Void knight robe (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -156802,7 +156802,7 @@
     "weight": 6.803,
     "version": "Locked",
     "slot": "body",
-    "image": "Void knight top.png",
+    "image": "Void knight top (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -156957,7 +156957,7 @@
     "weight": 0.453,
     "version": "Locked",
     "slot": "head",
-    "image": "Void mage helm.png",
+    "image": "Void mage helm (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -157112,7 +157112,7 @@
     "weight": 0.453,
     "version": "Locked",
     "slot": "head",
-    "image": "Void melee helm.png",
+    "image": "Void melee helm (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -157267,7 +157267,7 @@
     "weight": 0.453,
     "version": "Locked",
     "slot": "head",
-    "image": "Void ranger helm.png",
+    "image": "Void ranger helm (l).png",
     "speed": 0,
     "category": "",
     "bonuses": {
@@ -164181,7 +164181,7 @@
     "version": "",
     "slot": "weapon",
     "image": "Zamorak staff.png",
-    "speed": 5,
+    "speed": 4,
     "category": "Staff",
     "bonuses": {
       "str": 2,

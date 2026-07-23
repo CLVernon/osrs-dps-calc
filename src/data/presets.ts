@@ -28,6 +28,7 @@ export interface PlayerPresetDto {
   kandarinDiary: boolean;
   sunfireRunes: boolean;
   chinchompaDistance: number;
+  soulreaperStacks?: number;
 }
 
 const read = <T>(key: string, fallback: T): T => {
@@ -96,6 +97,7 @@ export const setupToDto = (s: PlayerSetup): PlayerPresetDto => {
     kandarinDiary: s.kandarinDiary,
     sunfireRunes: s.sunfireRunes,
     chinchompaDistance: s.chinchompaDistance,
+    soulreaperStacks: s.soulreaperStacks,
   };
 };
 
@@ -122,6 +124,7 @@ export const dtoToSetup = (dto: PlayerPresetDto, repo: Repository): PlayerSetup 
   setup.kandarinDiary = !!dto.kandarinDiary;
   setup.sunfireRunes = !!dto.sunfireRunes;
   setup.chinchompaDistance = dto.chinchompaDistance ?? 5;
+  setup.soulreaperStacks = dto.soulreaperStacks ?? 0;
   return setup;
 };
 

@@ -150,9 +150,10 @@ export class Gear {
       return true;
     }
     return this.isMelee() && this.wearing('Blessed axe', 'Ivandis flail', 'Blisterwood flail',
-      'Silver sickle', 'Silver sickle (b)', 'Emerald sickle', 'Emerald sickle (b)',
-      'Enchanted emerald sickle (b)', 'Ruby sickle (b)', 'Enchanted ruby sickle (b)',
-      'Blisterwood sickle', 'Silverlight', 'Darklight', 'Arclight', 'Rod of ivandis', 'Wolfbane');
+      'Hallowed flail', 'Silver sickle', 'Silver sickle (b)', 'Emerald sickle',
+      'Emerald sickle (b)', 'Enchanted emerald sickle (b)', 'Ruby sickle (b)',
+      'Enchanted ruby sickle (b)', 'Blisterwood sickle', 'Silverlight', 'Darklight',
+      'Arclight', 'Rod of ivandis', 'Wolfbane');
   }
 
   vampyrebane(tier2: boolean): boolean {
@@ -230,16 +231,16 @@ export class Gear {
       'Amulet of the damned');
   }
 
-  inquisitorPieces(): number {
-    let pieces = 0;
-    if (this.nameAt('head').startsWith("Inquisitor's great helm")) pieces++;
-    if (this.nameAt('body').startsWith("Inquisitor's hauberk")) pieces++;
-    if (this.nameAt('legs').startsWith("Inquisitor's plateskirt")) pieces++;
-    return pieces;
-  }
-
-  inquisitorsMace(): boolean {
-    return this.weaponName().startsWith("Inquisitor's mace");
+  /**
+   * Inquisitor's crush bonus weight in halves of a percent
+   * (helm +0.5%, hauberk +1%, plateskirt +1%; Summer sweep up 2026 values).
+   */
+  inquisitorWeight(): number {
+    let weight = 0;
+    if (this.nameAt('head').startsWith("Inquisitor's great helm")) weight += 1;
+    if (this.nameAt('body').startsWith("Inquisitor's hauberk")) weight += 2;
+    if (this.nameAt('legs').startsWith("Inquisitor's plateskirt")) weight += 2;
+    return weight;
   }
 
   /** Crystal armour weighted as the game does: helm 1, legs 2, body 3. */

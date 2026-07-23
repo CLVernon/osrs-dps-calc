@@ -259,6 +259,16 @@ export const SetupEditor = () => {
               disabled={setup.attackType !== 'ranged'}
               onChange={(e) => patch({ chinchompaDistance: parseInt(e.target.value, 10) || 5 })}
             />
+
+            <label title="Soulreaper axe soul stacks: +6% strength each">SRA stacks</label>
+            <input
+              type="number" min={0} max={5}
+              value={setup.soulreaperStacks ?? 0}
+              disabled={setup.equipment.weapon?.name !== 'Soulreaper axe'}
+              onChange={(e) => patch({
+                soulreaperStacks: Math.max(0, Math.min(5, parseInt(e.target.value, 10) || 0)),
+              })}
+            />
           </div>
 
           <div className="section-title">Buffs</div>

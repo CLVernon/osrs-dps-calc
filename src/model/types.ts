@@ -129,6 +129,8 @@ export interface PlayerSetup {
   kandarinDiary: boolean;
   sunfireRunes: boolean;
   chinchompaDistance: number;
+  /** Soulreaper axe soul stacks (0-5) */
+  soulreaperStacks: number;
 }
 
 let uidCounter = 0;
@@ -151,6 +153,7 @@ export const newSetup = (name: string): PlayerSetup => ({
   kandarinDiary: false,
   sunfireRunes: false,
   chinchompaDistance: 5,
+  soulreaperStacks: 0,
 });
 
 export const copySetup = (s: PlayerSetup): PlayerSetup => ({

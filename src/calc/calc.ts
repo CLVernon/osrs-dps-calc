@@ -83,6 +83,21 @@ class Calc {
     return ['stab', 'slash', 'crush'].includes(this.p.attackType);
   }
 
+  /** How strongly demonbane effects apply to this monster, as a percent. */
+  private demonbaneVulnerability(): number {
+    const { m } = this;
+    if (m.name === 'Duke Sucellus') return 70;
+    if (C.YAMA_IDS.has(m.id)) return 120;
+    if (C.YAMA_VOID_FLARE_IDS.has(m.id)) return 200;
+    if (C.ICE_DEMON_IDS.has(m.id)) return 115;
+    return 100;
+  }
+
+  /** Weapon demonbane percent scaled by the monster's vulnerability. */
+  private demonbanePercent(weaponPercent: number): number {
+    return t((weaponPercent * this.demonbaneVulnerability()) / 100);
+  }
+
   private isUndead(): boolean {
     return hasAttribute(this.m, 'undead');
   }
@@ -216,11 +231,14 @@ class Calc {
       this.note('Wilderness weapon vs wilderness target');
     }
     if (g.wearing('Arclight', 'Emberlight') && hasAttribute(m, 'demon')) {
-      attackRoll += t((attackRoll * 70) / 100);
+      attackRoll += t((attackRoll * this.demonbanePercent(70)) / 100);
       this.note('Arclight/Emberlight vs demon');
     }
+    if (g.wearing('Silverlight', 'Darklight') && hasAttribute(m, 'demon')) {
+      attackRoll += t((attackRoll * this.demonbanePercent(60)) / 100);
+    }
     if (g.wearing('Bone claws', 'Burning claws') && hasAttribute(m, 'demon')) {
-      attackRoll += t((attackRoll * 5) / 100);
+      attackRoll += t((attackRoll * this.demonbanePercent(5)) / 100);
     }
     if (hasAttribute(m, 'dragon')) {
       if (g.wearing('Dragon hunter lance')) {
@@ -249,16 +267,9 @@ class Calc {
     return this.applyInquisitor(attackRoll);
   }
 
-  private inquisitorWeight(): number {
-    const pieces = this.g.inquisitorPieces();
-    if (pieces === 0) return 0;
-    if (this.g.inquisitorsMace()) return pieces * 5;
-    return pieces === 3 ? 5 : pieces;
-  }
-
   private applyInquisitor(roll: number): number {
     if (this.p.attackType !== 'crush') return roll;
-    const weight = this.inquisitorWeight();
+    const weight = this.g.inquisitorWeight();
     if (weight === 0) return roll;
     this.note("Inquisitor's armour (crush)");
     return t((roll * (200 + weight)) / 200);
@@ -266,7 +277,18 @@ class Calc {
 
   private meleeMinMax(): [number, number] {
     const { p, g, m } = this;
-    let effectiveLevel = applyPrayerStrength(this.prayer(), this.visibleStrength());
+    const baseLevel = this.visibleStrength();
+    let effectiveLevel = applyPrayerStrength(this.prayer(), baseLevel);
+
+    // Soulreaper axe passive: +6% strength per stack (does not stack
+    // multiplicatively with prayers)
+    if (g.weaponName() === 'Soulreaper axe') {
+      const stacks = Math.max(0, Math.min(5, p.soulreaperStacks ?? 0));
+      if (stacks > 0) {
+        effectiveLevel += t((baseLevel * stacks * 6) / 100);
+        this.note(`Soulreaper axe: ${stacks} stack(s)`);
+      }
+    }
 
     let stanceBonus = 8;
     if (p.stance === 'Aggressive') stanceBonus += 3;
@@ -292,10 +314,10 @@ class Calc {
     }
 
     if (g.wearing('Arclight', 'Emberlight') && hasAttribute(m, 'demon')) {
-      maxHit += t((maxHit * 70) / 100);
+      maxHit += t((maxHit * this.demonbanePercent(70)) / 100);
     }
     if (g.wearing('Bone claws', 'Burning claws') && hasAttribute(m, 'demon')) {
-      maxHit += t((maxHit * 5) / 100);
+      maxHit += t((maxHit * this.demonbanePercent(5)) / 100);
     }
     if (g.tzhaarWeapon() && g.obsidianArmour()) {
       maxHit += t(baseMax / 10);
@@ -323,7 +345,7 @@ class Calc {
       maxHit = t((maxHit * 3) / 2);
     }
     if (g.wearing('Silverlight', 'Darklight', 'Silverlight (dyed)') && hasAttribute(m, 'demon')) {
-      maxHit += t((maxHit * 60) / 100);
+      maxHit += t((maxHit * this.demonbanePercent(60)) / 100);
       this.note('Silverlight/Darklight vs demon');
     }
     if (g.wearing('Leaf-bladed battleaxe') && hasAttribute(m, 'leafy')) {
@@ -339,7 +361,7 @@ class Calc {
       this.note('Rat bone weapon vs rat');
     }
     if (this.p.attackType === 'crush') {
-      const weight = this.inquisitorWeight();
+      const weight = g.inquisitorWeight();
       if (weight > 0) {
         maxHit = t((maxHit * (200 + weight)) / 200);
       }
@@ -412,7 +434,7 @@ class Calc {
       this.note(`Chinchompa fuse at distance ${p.chinchompaDistance}`);
     }
     if (g.wearing('Scorching bow') && hasAttribute(m, 'demon')) {
-      attackRoll += t((attackRoll * 30) / 100);
+      attackRoll += t((attackRoll * this.demonbanePercent(30)) / 100);
       this.note('Scorching bow vs demon');
     }
     return attackRoll;
@@ -507,7 +529,7 @@ class Calc {
     }
     if (needRevBuff) maxHit = t((maxHit * 3) / 2);
     if (needDragonbane) maxHit = t((maxHit * 5) / 4);
-    if (needDemonbane) maxHit += t((maxHit * 30) / 100);
+    if (needDemonbane) maxHit += t((maxHit * this.demonbanePercent(30)) / 100);
 
     if (g.ratBoneWeapon() && hasAttribute(m, 'rat')) {
       maxHit += 10;
@@ -581,7 +603,7 @@ class Calc {
     if (usingSpell?.name.includes('Demonbane') && hasAttribute(m, 'demon')) {
       let percent = p.markOfDarkness ? 40 : 20;
       if (g.wearing('Purging staff')) percent *= 2;
-      attackRoll += t((attackRoll * percent) / 100);
+      attackRoll += t((attackRoll * this.demonbanePercent(percent)) / 100);
       this.note(`Demonbane spell vs demon${p.markOfDarkness ? ' (Mark of Darkness)' : ''}`);
     }
     if (g.revWeaponBuffApplicable()) {
@@ -713,7 +735,7 @@ class Calc {
       case 'Trident of the swamp':
       case 'Trident of the swamp (e)': return Math.max(1, t(magicLevel / 3) - 2);
       case 'Sanguinesti staff':
-      case 'Holy sanguinesti staff': return Math.max(1, t(magicLevel / 3) - 1);
+      case 'Holy sanguinesti staff': return Math.max(1, t(magicLevel / 3));
       case 'Dawnbringer': return Math.max(1, t(magicLevel / 6) - 1);
       case "Tumeken's shadow": return Math.max(1, t(magicLevel / 3)) + 1;
       case 'Eye of ayak': return Math.max(1, t(magicLevel / 3) - 6);
@@ -903,11 +925,25 @@ class Calc {
       this.note('CoX Guardians: pickaxe/mining scaling');
     }
 
+    // Sanguinesti staff: 20% of accurate hits deal +8 damage (Summer sweep up)
+    if (g.wearing('Sanguinesti staff', 'Holy sanguinesti staff') && !this.castingSpell()) {
+      dist = dist.transform((h) => [
+        { ...h, probability: 0.8 },
+        { probability: 0.2, damage: h.damage + 8, accurate: h.accurate },
+      ], false);
+      this.note('Sanguinesti staff: 20% chance of +8 damage');
+    }
+
     const usingSpell = this.castingSpell() ? this.spell : null;
     if (p.markOfDarkness && usingSpell?.name.includes('Demonbane') && hasAttribute(m, 'demon')) {
       const percent = g.wearing('Purging staff') ? 50 : 25;
+      const vulnerability = this.demonbaneVulnerability();
       dist = dist.transform((h) => [
-        { ...h, probability: 1.0, damage: h.damage + t((h.damage * percent) / 100) },
+        {
+          ...h,
+          probability: 1.0,
+          damage: h.damage + t((t((h.damage * percent) / 100) * vulnerability) / 100),
+        },
       ], true);
       this.note('Mark of Darkness demonbane bonus');
     }
@@ -937,6 +973,15 @@ class Calc {
     }
 
     dist = this.applyBoltEffects(dist, max, false);
+
+    // Seeking arrows: accurate hits deal at least 3 damage (bows only)
+    if (p.attackType === 'ranged' && g.ammoName().includes('Seeking')
+      && g.weaponCategory() === 'Bow') {
+      dist = dist.transform((h) => [
+        { probability: 1.0, damage: Math.max(h.damage, 3), accurate: h.accurate },
+      ], false);
+      this.note('Seeking arrows: minimum hit of 3');
+    }
 
     // Accurate zero-damage hits deal 1 damage
     const accurateZeroApplies = this.spell == null || this.spell.max_hit > 0
